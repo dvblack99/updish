@@ -355,14 +355,11 @@
     <div class="panel">
       <div class="panel-title">Configuration</div>
 
-      <label>Region</label>
-      <select id="regionSelect">
-        <option value="vancouver">Greater Vancouver (default)</option>
-        <option value="northvan">North Vancouver only</option>
-        <option value="burnaby">Burnaby / New West</option>
-        <option value="richmond">Richmond / Delta</option>
-        <option value="surrey">Surrey / Langley</option>
+      <label>Coverage</label>
+      <select id="regionSelect" disabled style="opacity:0.4;cursor:not-allowed;">
+        <option>Full Lower Mainland (auto-tiled)</option>
       </select>
+      <p class="hint">Fetches in small tiles automatically — no timeouts</p>
 
       <label>Venue types to collect</label>
       <select id="typeSelect">
@@ -464,14 +461,25 @@
 let cafes = [];
 let running = false;
 
-// ─── Region bounding boxes ────────────────────────────────────────────────────
-const REGIONS = {
-  vancouver: { name: 'Greater Vancouver', south: 49.00, west: -123.30, north: 49.45, east: -122.40 },
-  northvan:  { name: 'North Vancouver',   south: 49.28, west: -123.18, north: 49.42, east: -122.95 },
-  burnaby:   { name: 'Burnaby / New West',south: 49.18, west: -123.02, north: 49.30, east: -122.85 },
-  richmond:  { name: 'Richmond / Delta',  south: 49.05, west: -123.22, north: 49.22, east: -122.98 },
-  surrey:    { name: 'Surrey / Langley',  south: 49.00, west: -122.90, north: 49.22, east: -122.55 },
-};
+// ─── Lower Mainland full bounding box ────────────────────────────────────────
+const FULL_REGION = { name: 'Greater Vancouver', south: 49.00, west: -123.30, north: 49.45, east: -122.40 };
+
+// Split the full region into a grid of tiles small enough to not timeout
+// Each tile covers roughly 0.09 lat x 0.15 lon — yields ~24 tiles total
+function buildTiles(region, latStep = 0.09, lonStep = 0.15) {
+  const tiles = [];
+  for (let lat = region.south; lat < region.north; lat = Math.round((lat + latStep) * 1000) / 1000) {
+    for (let lon = region.west; lon < region.east; lon = Math.round((lon + lonStep) * 1000) / 1000) {
+      tiles.push({
+        south: lat,
+        west: lon,
+        north: Math.min(Math.round((lat + latStep) * 1000) / 1000, region.north),
+        east: Math.min(Math.round((lon + lonStep) * 1000) / 1000, region.east),
+      });
+    }
+  }
+  return tiles;
+}
 
 // ─── Logging ──────────────────────────────────────────────────────────────────
 function log(msg, type = 'info') {
@@ -516,40 +524,56 @@ document.getElementById('yelpKey').addEventListener('input', function() {
   }
 });
 
-// ─── Phase 1: Overpass fetch ──────────────────────────────────────────────────
-async function fetchFromOverpass(region, types) {
-  const r = REGIONS[region];
-  const bbox = `${r.south},${r.west},${r.north},${r.east}`;
-
+// ─── Phase 1: Tiled Overpass fetch ───────────────────────────────────────────
+async function fetchTile(tile, types) {
+  const bbox = `${tile.south},${tile.west},${tile.north},${tile.east}`;
   let typeFilter = '';
   if (types === 'both') {
-    typeFilter = `node["amenity"~"cafe|restaurant"](${bbox});
-  way["amenity"~"cafe|restaurant"](${bbox});`;
+    typeFilter = `node["amenity"~"cafe|restaurant"](${bbox});way["amenity"~"cafe|restaurant"](${bbox});`;
   } else if (types === 'cafe') {
-    typeFilter = `node["amenity"="cafe"](${bbox});
-  way["amenity"="cafe"](${bbox});`;
+    typeFilter = `node["amenity"="cafe"](${bbox});way["amenity"="cafe"](${bbox});`;
   } else {
-    typeFilter = `node["amenity"="restaurant"](${bbox});
-  way["amenity"="restaurant"](${bbox});`;
+    typeFilter = `node["amenity"="restaurant"](${bbox});way["amenity"="restaurant"](${bbox});`;
   }
-
-  const query = `[out:json][timeout:60];(${typeFilter});out center tags;`;
-
-  log(`Querying Overpass API for ${r.name}…`, 'head');
-  log(`Bbox: ${bbox}`, 'info');
-
-  const url = 'https://overpass-api.de/api/interpreter';
-  const resp = await fetch(url, {
+  const query = `[out:json][timeout:30];(${typeFilter});out center tags;`;
+  const resp = await fetch('https://overpass-api.de/api/interpreter', {
     method: 'POST',
     body: 'data=' + encodeURIComponent(query),
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
   });
-
   if (!resp.ok) throw new Error(`Overpass returned ${resp.status}`);
-
   const data = await resp.json();
-  log(`Overpass returned ${data.elements.length} raw elements`, 'ok');
   return data.elements;
+}
+
+async function fetchFromOverpass(region, types) {
+  const tiles = buildTiles(FULL_REGION);
+  log(`Splitting Lower Mainland into ${tiles.length} tiles…`, 'head');
+
+  let allElements = [];
+  let failed = 0;
+
+  for (let i = 0; i < tiles.length; i++) {
+    const tile = tiles[i];
+    const pct = 10 + Math.round((i / tiles.length) * 40);
+    setProgress(pct);
+
+    try {
+      const elements = await fetchTile(tile, types);
+      allElements = allElements.concat(elements);
+      log(`Tile ${i+1}/${tiles.length} — ${elements.length} venues (total so far: ${allElements.length})`, 'ok');
+    } catch (e) {
+      failed++;
+      log(`Tile ${i+1}/${tiles.length} failed — skipping (${e.message})`, 'warn');
+    }
+
+    // Pause 1.5s between tiles to be polite to Overpass
+    if (i < tiles.length - 1) await sleep(1500);
+  }
+
+  if (failed > 0) log(`${failed} tiles failed and were skipped`, 'warn');
+  log(`Fetch complete — ${allElements.length} raw elements across all tiles`, 'ok');
+  return allElements;
 }
 
 // ─── Phase 2: Clean & deduplicate ─────────────────────────────────────────────
@@ -697,7 +721,7 @@ async function runPipeline() {
   // Reset phases
   [1,2,3,4].forEach(n => setPhase(n, ''));
 
-  const region = document.getElementById('regionSelect').value;
+  const region = 'lowermainland';
   const types = document.getElementById('typeSelect').value;
   const yelpKey = document.getElementById('yelpKey').value.trim();
 
@@ -800,9 +824,7 @@ function exportCSV() {
 
   const a = document.createElement('a');
   a.href = url;
-  const region = document.getElementById('regionSelect').value;
-  const date = new Date().toISOString().slice(0,10);
-  a.download = `updish_cafes_${region}_${date}.csv`;
+  a.download = `updish_cafes_lowermainland_${date}.csv`;
   a.click();
   URL.revokeObjectURL(url);
 
