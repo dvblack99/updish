@@ -466,7 +466,7 @@ const FULL_REGION = { name: 'Greater Vancouver', south: 49.00, west: -123.30, no
 
 // Split the full region into a grid of tiles small enough to not timeout
 // Each tile covers roughly 0.09 lat x 0.15 lon — yields ~24 tiles total
-function buildTiles(region, latStep = 0.09, lonStep = 0.15) {
+function buildTiles(region, latStep = 0.04, lonStep = 0.07) {
   const tiles = [];
   for (let lat = region.south; lat < region.north; lat = Math.round((lat + latStep) * 1000) / 1000) {
     for (let lon = region.west; lon < region.east; lon = Math.round((lon + lonStep) * 1000) / 1000) {
@@ -567,8 +567,8 @@ async function fetchFromOverpass(region, types) {
       log(`Tile ${i+1}/${tiles.length} failed — skipping (${e.message})`, 'warn');
     }
 
-    // Pause 1.5s between tiles to be polite to Overpass
-    if (i < tiles.length - 1) await sleep(1500);
+    // Pause 3s between tiles to be polite to Overpass
+    if (i < tiles.length - 1) await sleep(3000);
   }
 
   if (failed > 0) log(`${failed} tiles failed and were skipped`, 'warn');
