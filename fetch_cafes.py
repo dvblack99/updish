@@ -41,8 +41,16 @@ PAUSE_MIN = 5
 PAUSE_MAX = 9
 
 # Retry settings
-MAX_RETRIES = 3
-RETRY_PAUSE = 30  # seconds to wait after a failure before retrying
+MAX_RETRIES = 4
+RETRY_PAUSE = 15
+
+# Overpass mirrors — rotated on each retry
+OVERPASS_MIRRORS = [
+    'https://overpass-api.de/api/interpreter',
+    'https://overpass.kumi.systems/api/interpreter',
+    'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
+    'https://overpass.openstreetmap.ru/api/interpreter',
+]
 
 # ─── Logging ──────────────────────────────────────────────────────────────────
 
@@ -88,26 +96,23 @@ def fetch_tile(tile, session):
 );
 out center tags;"""
 
-    for attempt in range(1, MAX_RETRIES + 1):
+    for attempt in range(MAX_RETRIES):
+        mirror = OVERPASS_MIRRORS[attempt % len(OVERPASS_MIRRORS)]
         try:
-            resp = session.post(
-                'https://overpass-api.de/api/interpreter',
-                data={'data': query},
-                timeout=35
-            )
+            resp = session.post(mirror, data={'data': query}, timeout=35)
             if resp.status_code == 200:
                 return resp.json().get('elements', [])
             elif resp.status_code in (429, 504):
-                log.warning(f'  HTTP {resp.status_code} — waiting {RETRY_PAUSE}s before retry {attempt}/{MAX_RETRIES}')
+                log.warning(f'  HTTP {resp.status_code} on {mirror} — trying next mirror in {RETRY_PAUSE}s')
                 time.sleep(RETRY_PAUSE)
             else:
-                log.warning(f'  HTTP {resp.status_code} — skipping tile')
+                log.warning(f'  HTTP {resp.status_code} on {mirror} — skipping tile')
                 return []
         except requests.RequestException as e:
-            log.warning(f'  Request error: {e} — retry {attempt}/{MAX_RETRIES}')
+            log.warning(f'  Error on {mirror}: {e} — trying next mirror in {RETRY_PAUSE}s')
             time.sleep(RETRY_PAUSE)
 
-    log.warning('  All retries failed — skipping tile')
+    log.warning('  All mirrors failed — skipping tile')
     return []
 
 # ─── Clean elements ───────────────────────────────────────────────────────────
