@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Updish — Lower Mainland Venues</title>
+<style>
+  :root { --bg:#0f0f0f; --surface:#1a1a1a; --border:#2a2a2a; --text:#e8e8e8; --accent:#c8a96e; --muted:#666; }
+  body { background:var(--bg); color:var(--text); font-family:'Courier New',monospace; font-size:13px; margin:0; padding:32px; line-height:1.6; }
+  h1 { font-family:Georgia,serif; color:var(--accent); margin-bottom:8px; }
+  .panel { background:var(--surface); border:1px solid var(--border); border-radius:4px; padding:20px; margin-bottom:24px; }
+  table { width:100%; border-collapse:collapse; font-size:12px; }
+  th, td { padding:8px 10px; text-align:left; border-bottom:1px solid var(--border); }
+  th { background:var(--surface); position:sticky; top:0; }
+  tr:hover { background:rgba(200,169,110,0.08); }
+  .search { width:100%; padding:10px; background:var(--bg); border:1px solid var(--border); color:var(--text); margin-bottom:16px; }
+  .stat { display:inline-flex; flex-direction:column; align-items:center; background:var(--bg); border:1px solid var(--border); padding:12px 16px; border-radius:4px; margin:0 8px 8px 0; }
+  .stat-num { font-size:28px; color:var(--accent); line-height:1; }
+  .stat-label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; }
+  a { color:var(--accent); text-decoration:none; }
+  a:hover { text-decoration:underline; }
+</style>
+</head>
+<body>
+<header><h1>Updish — Lower Mainland Venues</h1><p>4,831 cafés & restaurants from OpenStreetMap • Last updated: <span id="lastUpdated"></span></p></header>
+
+<div class="panel">
+  <div id="stats" style="display:flex;flex-wrap:wrap;gap:12px;"></div>
+</div>
+
+<div class="panel">
+  <input type="text" id="search" class="search" placeholder="Search by name, city, or type...">
+  <div style="max-height:650px;overflow:auto;border:1px solid var(--border);border-radius:3px;">
+    <table id="venueTable">
+      <thead><tr><th>Name</th><th>City</th><th>Type</th><th>Address</th><th>Website</th><th>Phone</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<div style="text-align:center;margin-top:20px;">
+  <a href="./data/latest_cafes.csv" style="background:#c8a96e;color:#0f0f0f;padding:12px 24px;text-decoration:none;border-radius:4px;font-weight:bold;">↓ Download Full CSV</a>
+</div>
+
+<div style="margin-top:40px;">
+<h2 style="font-family:Georgia,serif;color:#c8a96e;font-weight:normal;margin-bottom:8px;font-size:18px;">Reference Library</h2>
+<p style="color:#666;font-size:11px;margin-bottom:20px;">Free government & academic reports relevant to café and restaurant operations in BC's Lower Mainland</p>
+
+<style>
+  .lib-section { margin-bottom:28px; }
+  .lib-section-title { font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:#666; border-bottom:1px solid #2a2a2a; padding-bottom:8px; margin-bottom:12px; }
+  .lib-entry { display:flex; gap:12px; padding:10px 0; border-bottom:1px solid #1e1e1e; align-items:baseline; }
+  .lib-entry:last-child { border-bottom:none; }
+  .lib-source { font-size:10px; color:#7a5f35; white-space:nowrap; min-width:90px; text-transform:uppercase; letter-spacing:0.5px; }
+  .lib-text { flex:1; }
+  .lib-text a { color:#e8e8e8; text-decoration:none; font-size:12px; line-height:1.5; }
+  .lib-text a:hover { color:#c8a96e; }
+  .lib-desc { font-size:11px; color:#555; margin-top:3px; }
+</style>
+
+<div class="panel">
+  <div class="lib-section">
+    <div class="lib-section-title">Market Data & Industry Statistics</div>
+
+    <div class="lib-entry">
+      <span class="lib-source">StatsCan</span>
+      <div class="lib-text">
+        <a href="https://www150.statcan.gc.ca/n1/daily-quotidien/250225/dq250225c-eng.htm" target="_blank">Food Services and Drinking Places, December 2024 — The Daily</a>
+        <div class="lib-desc">Monthly sales data for full-service, limited-service, and drinking places. BC-specific figures included.</div>
+      </div>
+    </div>
+
+    <div class="lib-entry">
+      <span class="lib-source">StatsCan</span>
+      <div class="lib-text">
+        <a href="https://www150.statcan.gc.ca/n1/daily-quotidien/250218/dq250218d-eng.htm" target="_blank">Food Services and Drinking Places, Annual 2023</a>
+        <div class="lib-desc">Annual operating revenue trends; post-pandemic recovery benchmarks for the foodservice subsector.</div>
+      </div>
+    </div>
+
+    <div class="lib-entry">
+      <span class="lib-source">StatsCan</span>
+      <div class="lib-text">
+        <a href="https://www150.statcan.gc.ca/n1/en/catalogue/71-607-X2017003" target="_blank">Food Services and Drinking Places Sales — Interactive Dashboard</a>
+        <div class="lib-desc">Dynamic tool for comparing provincial and territorial foodservice sales data with maps and charts.</div>
+      </div>
+    </div>
+
+    <div class="lib-entry">
+      <span class="lib-source">AAFC</span>
+      <div class="lib-text">
+        <a href="https://agriculture.canada.ca/en/international-trade/market-intelligence/reports-and-guides/foodservice-canada" target="_blank">Foodservice in Canada — Agriculture and Agri-Food Canada</a>
+        <div class="lib-desc">Segment-by-segment breakdown: limited-service, full-service, cafés/bars, street stalls. Forecasts to 2027.</div>
+      </div>
+    </div>
+
+    <div class="lib-entry">
+      <span class="lib-source">StatsCan</span>
+      <div class="lib-text">
+        <a href="https://www150.statcan.gc.ca/n1/daily-quotidien/250521/dq250521a-eng.htm" target="_blank">Survey of Household Spending, 2023</a>
+        <div class="lib-desc">Canadian household food expenditure split between stores ($8,659) and restaurants ($3,351). Home vs. dining-out trends.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="lib-section">
+    <div class="lib-section-title">Food Prices & Consumer Costs</div>
+
+    <div class="lib-entry">
+      <span class="lib-source">Dalhousie</span>
+      <div class="lib-text">
+        <a href="https://cdn.dal.ca/content/dam/dalhousie/pdf/sites/agri-food/FINAL%20E%20low.res%20DAL_PRICE_REPORT_2026.pdf" target="_blank">Canada's Food Price Report 2026 (PDF)</a>
+        <div class="lib-desc">Annual forecast: 4–6% overall food price increase in 2026. Family of four projected at $17,571. BC below national average.</div>
+      </div>
+    </div>
+
+    <div class="lib-entry">
+      <span class="lib-source">Dalhousie</span>
+      <div class="lib-text">
+        <a href="https://cdn.dal.ca/content/dam/dalhousie/pdf/sites/agri-food/EN%20-%20Food%20Price%20Report%202025.pdf" target="_blank">Canada's Food Price Report 2025 (PDF)</a>
+        <div class="lib-desc">2025 forecast: 3–5% increase. Meat, bakery, and vegetables as key cost drivers. Tariff and currency impacts analyzed.</div>
+      </div>
+    </div>
+
+    <div class="lib-entry">
+      <span class="lib-source">Dalhousie</span>
+      <div class="lib-text">
+        <a href="https://www.dal.ca/sites/agri-food/research/canada-s-food-price-report-2024.html" target="_blank">Canada's Food Price Report 2024</a>
+        <div class="lib-desc">2024 forecast: 2.5–4.5% increase. First year of slowing food inflation post-pandemic. Spending per capita analysis.</div>
+      </div>
+    </div>
+
+    <div class="lib-entry">
+      <span class="lib-source">StatsCan</span>
+      <div class="lib-text">
+        <a href="https://www.statcan.gc.ca/en/topics-start/food-price" target="_blank">Food Price Data Hub — Statistics Canada</a>
+        <div class="lib-desc">Centralized hub: CPI for food purchased from stores, average retail prices, farm-to-retail price chain data.</div>
+      </div>
+    </div>
+
+    <div class="lib-entry">
+      <span class="lib-source">StatsCan</span>
+      <div class="lib-text">
+        <a href="https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1810000403" target="_blank">Consumer Price Index — Food, Monthly by Province (Table 18-10-0004-01)</a>
+        <div class="lib-desc">Monthly CPI for food components by province. BC-specific pricing trends for grocery and restaurant food.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="lib-section">
+    <div class="lib-section-title">Regulatory Requirements — BC Restaurants & Food Premises</div>
+
+    <div class="lib-entry">
+      <span class="lib-source">BC Gov</span>
+      <div class="lib-text">
+        <a href="https://www2.gov.bc.ca/gov/content/health/keeping-bc-healthy-safe/food-safety/food-safety-legislation" target="_blank">BC Food Safety Legislation Overview</a>
+        <div class="lib-desc">Portal to all provincial food safety acts: Food Safety Act, Public Health Act, Milk Industry Act, Fish and Seafood Act.</div>
+      </div>
+    </div>
+
+    <div class="lib-entry">
+      <span class="lib-source">BC Laws</span>
+      <div class="lib-text">
+        <a href="https://www.bclaws.gov.bc.ca/civix/document/id/complete/statreg/210_99" target="_blank">BC Food Premises Regulation (BC Reg 210/99)</a>
+        <div class="lib-desc">Full text: permit requirements, HACCP plans, food handler certification (FOODSAFE), temperature controls, sanitation standards.</div>
+      </div>
+    </div>
+
+    <div class="lib-entry">
+      <span class="lib-source">BCCDC</span>
+      <div class="lib-text">
+        <a href="https://www.bccdc.ca/health-professionals/professional-resources/food-premises-guidelines" target="_blank">Food Premises Guidelines — BC Centre for Disease Control</a>
+        <div class="lib-desc">Operational guidelines: HACCP plans, sous vide safety, raw shellfish, pooled eggs, boil water advisories. Templates included.</div>
+      </div>
+    </div>
+
+    <div class="lib-entry">
+      <span class="lib-source">VCH</span>
+      <div class="lib-text">
+        <a href="https://www.vch.ca/en/food-safety-resources" target="_blank">Food Safety Resources for Operators — Vancouver Coastal Health</a>
+        <div class="lib-desc">Local health authority requirements: permits, food safety plans, sanitation plans, FOODSAFE certification. Includes templates.</div>
+      </div>
+    </div>
+
+    <div class="lib-entry">
+      <span class="lib-source">Fraser Health</span>
+      <div class="lib-text">
+        <a href="https://www.fraserhealth.ca/health-topics-a-to-z/food-safety/requirements-for-food-businesses" target="_blank">Requirements for New Food Businesses — Fraser Health</a>
+        <div class="lib-desc">Step-by-step permitting process for new restaurants in the Fraser Valley. Covers permits, plans, and certification flow.</div>
+      </div>
+    </div>
+
+    <div class="lib-entry">
+      <span class="lib-source">BC Gov</span>
+      <div class="lib-text">
+        <a href="https://www.foodsafe.ca/resources.html" target="_blank">FOODSAFE Program Resources</a>
+        <div class="lib-desc">Province of BC's mandatory food handler training program. Level 1 required for all operators and on-site staff.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="lib-section">
+    <div class="lib-section-title">BC Agriculture, Local Producers & Supply Chain</div>
+
+    <div class="lib-entry">
+      <span class="lib-source">BC Gov</span>
+      <div class="lib-text">
+        <a href="https://www2.gov.bc.ca/gov/content/industry/agriculture-seafood/statistics/agriculture-and-seafood-statistics-publications" target="_blank">BC Agriculture & Seafood Statistics Publications</a>
+        <div class="lib-desc">Sector snapshots and interactive dashboards: GDP, exports, jobs, sales across agriculture, seafood, and food processing.</div>
+      </div>
+    </div>
+
+    <div class="lib-entry">
+      <span class="lib-source">BC Gov</span>
+      <div class="lib-text">
+        <a href="https://gov.bc.ca/af" target="_blank">BC Ministry of Agriculture and Food</a>
+        <div class="lib-desc">Hub for Buy BC, Feed BC, producer funding programs, food safety resources, and agricultural statistics.</div>
+      </div>
+    </div>
+
+    <div class="lib-entry">
+      <span class="lib-source">BC Gov</span>
+      <div class="lib-text">
+        <a href="https://www2.gov.bc.ca/gov/content/industry/agriculture-seafood/food-safety/good-agricultural-practices/scope-of-good-agricultural-practices" target="_blank">Good Agricultural Practices — On-Farm Food Safety</a>
+        <div class="lib-desc">Regulations governing produce, livestock, and dairy from farm gate to restaurant supply chain. HACCP guidance for producers.</div>
+      </div>
+    </div>
+
+    <div class="lib-entry">
+      <span class="lib-source">BC Gov</span>
+      <div class="lib-text">
+        <a href="https://www.bcbudget.gov.bc.ca/Annual_Reports/2024_2025/pdf/ministry/af.pdf" target="_blank">BC Ministry of Agriculture & Food — 2024/25 Annual Service Plan Report (PDF)</a>
+        <div class="lib-desc">Feed BC institutional food sourcing targets, new entrant farm programs, food processing market development. BC food system strategy.</div>
+      </div>
+    </div>
+
+    <div class="lib-entry">
+      <span class="lib-source">BC Laws</span>
+      <div class="lib-text">
+        <a href="https://www.bclaws.gov.bc.ca/civix/document/id/complete/statreg/16001" target="_blank">BC Food and Agricultural Products Classification Act</a>
+        <div class="lib-desc">Grading programs, certification requirements, labelling standards, and inspector powers for BC food producers and distributors.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="lib-section">
+    <div class="lib-section-title">Mixed-Use Development & Commercial Zoning (Lower Mainland)</div>
+
+    <div class="lib-entry">
+      <span class="lib-source">Vancouver</span>
+      <div class="lib-text">
+        <a href="https://vancouver.ca/home-property-development/zoning-and-land-use-policies-document-library.aspx" target="_blank">City of Vancouver Zoning & Land Use Document Library</a>
+        <div class="lib-desc">All zoning policies, district schedules, and guidelines governing commercial ground floors, restaurant use, and mixed-use development.</div>
+      </div>
+    </div>
+
+    <div class="lib-entry">
+      <span class="lib-source">Vancouver</span>
+      <div class="lib-text">
+        <a href="https://bylaws.vancouver.ca/zoning/zoning-by-law-district-schedule-c-2.pdf" target="_blank">Vancouver Zoning By-law — C-2 District Schedule (PDF)</a>
+        <div class="lib-desc">Primary commercial mixed-use zone. Restaurant and café use permissions, ground-floor depth requirements, FSR rules.</div>
+      </div>
+    </div>
+
+    <div class="lib-entry">
+      <span class="lib-source">Vancouver</span>
+      <div class="lib-text">
+        <a href="https://vancouver.ca/home-property-development/zoning-and-development-bylaw.aspx" target="_blank">Vancouver Zoning and Development By-law 3575</a>
+        <div class="lib-desc">Full zoning by-law governing all land use, development, and occupancy across the City of Vancouver.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="lib-section">
+    <div class="lib-section-title">Consumer Behaviour — Dining Out vs. Cooking at Home</div>
+
+    <div class="lib-entry">
+      <span class="lib-source">StatsCan</span>
+      <div class="lib-text">
+        <a href="https://www150.statcan.gc.ca/n1/daily-quotidien/250521/dq250521a-eng.htm" target="_blank">Survey of Household Spending, 2023 — Food Expenditure Detail</a>
+        <div class="lib-desc">$3,351 average household spending at restaurants in 2023 vs. $8,659 at stores. Urban/rural and income quintile breakdowns.</div>
+      </div>
+    </div>
+
+    <div class="lib-entry">
+      <span class="lib-source">ISED</span>
+      <div class="lib-text">
+        <a href="https://ised-isde.canada.ca/site/office-consumer-affairs/en/consumer-interest-groups/consumer-trends/consumer-trends-report-chapter-9-consumer-spending" target="_blank">Consumer Trends Report — Chapter 9: Consumer Spending on Food</a>
+        <div class="lib-desc">Long-run analysis of household food spending: store vs. restaurant share shifts, meal preparation time trends, convenience food growth.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <p style="font-size:10px;color:#444;margin-top:20px;padding-top:16px;border-top:1px solid #2a2a2a;">
+    All sources are free government or academic publications. Last reviewed April 2026.
+    Links go directly to source documents — no paywalls.
+  </p>
+</div>
+</div>
+
+<script>
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  const parseRow = line => {
+    const fields = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') { inQ = !inQ; }
+      else if (ch === ',' && !inQ) { fields.push(cur); cur = ''; }
+      else { cur += ch; }
+    }
+    fields.push(cur);
+    return fields;
+  };
+  const headers = parseRow(lines[0]);
+  return lines.slice(1).filter(l => l.trim()).map(l => {
+    const vals = parseRow(l);
+    return Object.fromEntries(headers.map((h, i) => [h, (vals[i] || '').trim()]));
+  });
+}
+
+async function loadData() {
+  try {
+    const res = await fetch('./data/latest_cafes.csv');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
+    const venues = parseCSV(text);
+    const text = await res.text();
+    const rows = text.trim().split('\n').map(r => r.split(',').map(c => c.replace(/^"|"$/g, '')));
+    const headers = rows[0];
+    const venues = rows.slice(1).map(r => Object.fromEntries(headers.map((h,i) => [h, r[i] || ''])));
+
+    const total = venues.length;
+    const cities = new Set(venues.map(r => r.city)).size;
+    const withWebsite = venues.filter(r => r.website && r.website.trim() !== '').length;
+
+    document.getElementById('stats').innerHTML = `
+      <div class="stat"><span class="stat-num">${total}</span><span class="stat-label">Total Venues</span></div>
+      <div class="stat"><span class="stat-num">${cities}</span><span class="stat-label">Cities</span></div>
+      <div class="stat"><span class="stat-num">${withWebsite}</span><span class="stat-label">With Website</span></div>
+    `;
+
+    document.getElementById('lastUpdated').textContent = new Date().toLocaleString('en-CA');
+
+    const tbody = document.querySelector('#venueTable tbody');
+    function render(filtered) {
+      tbody.innerHTML = filtered.map(r => `
+        <tr>
+          <td>${r.name || ''}</td>
+          <td>${r.city || ''}</td>
+          <td style="text-transform:capitalize">${r.type || ''}</td>
+          <td>${r.address || ''}</td>
+          <td>${r.website ? `<a href="https://${r.website}" target="_blank">${r.website}</a>` : '—'}</td>
+          <td>${r.phone || '—'}</td>
+        </tr>
+      `).join('');
+    }
+    render(venues);
+
+    document.getElementById('search').addEventListener('input', e => {
+      const term = e.target.value.toLowerCase().trim();
+      const filtered = term ? venues.filter(r => Object.values(r).some(v => (v || '').toString().toLowerCase().includes(term))) : venues;
+      render(filtered);
+    });
+  } catch (err) {
+    document.body.innerHTML += '<p style="color:#e05c5c;margin-top:40px;">Error loading data. Try refreshing the page.</p>';
+  }
+}
+loadData();
+</script>
+</body>
+</html>
