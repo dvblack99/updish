@@ -32,7 +32,7 @@
   <input type="text" id="search" class="search" placeholder="Search by name, city, or type...">
   <div style="max-height:650px;overflow:auto;border:1px solid var(--border);border-radius:3px;">
     <table id="venueTable">
-      <thead><tr><th>Name</th><th>City</th><th>Type</th><th>Address</th><th>Website</th><th>Phone</th></tr></thead>
+      <thead><tr><th>Name</th><th>City</th><th>Type</th><th>Address</th><th>Website</th><th>Phone</th><th>Scrape</th><th>Photos</th></tr></thead>
       <tbody></tbody>
     </table>
   </div>
@@ -335,7 +335,10 @@
   .feed-card-title a:hover { color:#c8a96e; }
   .feed-card-excerpt { font-size:11px; color:#555; line-height:1.5; }
   .feed-card-meta { font-size:10px; color:#444; margin-top:auto; padding-top:6px; }
-  .feed-card-reddit-score { color:#ff6314; }
+  .feed-card-footer { display:flex; gap:10px; align-items:center; margin-top:auto; padding-top:6px; flex-wrap:wrap; }
+  .feed-card-reddit-score { color:#ff6314; font-size:10px; }
+  .feed-card-filelink { font-size:10px; color:#7a5f35; text-decoration:none; }
+  .feed-card-filelink:hover { color:#c8a96e; }
   /* ── Source directory ── */
   .source-dir { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:10px; margin-top:12px; }
   .source-card { background:#1a1a1a; border:1px solid #2a2a2a; border-radius:4px; padding:12px; }
@@ -419,18 +422,60 @@ async function loadData() {
     `;
     document.getElementById('lastUpdated').textContent = new Date().toLocaleString('en-CA');
 
+    let venueStatus = {};
+
+    async function loadVenueStatus() {
+      try {
+        const res = await fetch('./data/venue_status.json');
+        if (res.ok) venueStatus = await res.json();
+      } catch(e) {}
+    }
+
+    await loadVenueStatus();
+
     const tbody = document.querySelector('#venueTable tbody');
     function render(filtered) {
-      tbody.innerHTML = filtered.map(r => `
-        <tr>
-          <td>${r.name || ''}</td>
-          <td>${r.city || ''}</td>
-          <td style="text-transform:capitalize">${r.type || ''}</td>
-          <td>${r.address || ''}</td>
-          <td>${r.website ? `<a href="https://${r.website}" target="_blank">${r.website}</a>` : '—'}</td>
-          <td>${r.phone || '—'}</td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = filtered.map(r => {
+        const vid = r.osm_id || '';
+        const vs  = venueStatus[vid] || {};
+        // scrape cell
+        let scrapeCell = '<td style="color:#333">—</td>';
+        if (vs.error) {
+          scrapeCell = `<td style="color:#e05c5c;font-size:11px;">error</td>`;
+        } else if (vs.file) {
+          const base = `./data/venues/${vid}/`;
+          const updated = vs.changed ? ' <span style="color:#c8a96e;font-size:9px;">↑</span>' : '';
+          scrapeCell = `<td style="font-size:11px;">
+            <a href="${base}${vs.file}" target="_blank" style="color:#7a5f35">HTML</a>
+            · <a href="${base}${vs.txt}" target="_blank" style="color:#7a5f35">TXT</a>${updated}
+          </td>`;
+        }
+        // photos cell
+        let photosCell = '<td style="color:#333">—</td>';
+        if (vs.photos && vs.photos.length) {
+          const count = vs.photos.length;
+          const links = vs.photos.map((p,i) =>
+            `<a href="${p.full_url}" target="_blank" style="color:#7a5f35;font-size:11px;">${p.source === 'Mapillary' ? '📍' : '🖼'} ${i+1}</a>`
+          ).join(' ');
+          photosCell = `<td>
+            <details style="font-size:11px;">
+              <summary style="cursor:pointer;color:#7a5f35;list-style:none;">${count} photo${count>1?'s':''} ▾</summary>
+              <div style="padding-top:4px;display:flex;flex-wrap:wrap;gap:4px;">${links}</div>
+            </details>
+          </td>`;
+        }
+        return `
+          <tr>
+            <td>${r.name || ''}</td>
+            <td>${r.city || ''}</td>
+            <td style="text-transform:capitalize">${r.type || ''}</td>
+            <td>${r.address || ''}</td>
+            <td>${r.website ? `<a href="https://${r.website}" target="_blank">${r.website}</a>` : '—'}</td>
+            <td>${r.phone || '—'}</td>
+            ${scrapeCell}
+            ${photosCell}
+          </tr>`;
+      }).join('');
     }
     render(venues);
 
@@ -526,13 +571,22 @@ function renderCards() {
   grid.innerHTML = slice.map(e => {
     const meta = SOURCES_META.find(s => s.id === e.source_id) || {};
     const color = meta.color || '#666';
-    const score = e.type === 'reddit' && e.score ? `<span class="feed-card-reddit-score">↑${e.score}</span> · ` : '';
+    const score = e.type === 'reddit' && e.score ? `<span class="feed-card-reddit-score">↑${e.score}</span>` : '';
+    const scrapeLinks = e.scraped && !e.scrape_error
+      ? `<a class="feed-card-filelink" href="./data/critic_scrapes/${e.id}/page.html" target="_blank">↓ HTML</a>
+         <a class="feed-card-filelink" href="./data/critic_scrapes/${e.id}/page.txt" target="_blank">TXT</a>
+         ${e.scrape_changed ? '<span style="color:#c8a96e;font-size:9px;text-transform:uppercase;letter-spacing:0.5px;">Updated</span>' : ''}`
+      : e.scrape_error ? '<span style="color:#e05c5c;font-size:9px;">scrape error</span>' : '';
     return `
       <div class="feed-card">
         <div class="feed-card-source" style="color:${color}">${e.source}</div>
         <div class="feed-card-title"><a href="${e.url}" target="_blank" rel="noopener">${e.title}</a></div>
         ${e.excerpt ? `<div class="feed-card-excerpt">${e.excerpt}</div>` : ''}
-        <div class="feed-card-meta">${score}${formatDate(e.date)}</div>
+        <div class="feed-card-footer">
+          ${score}
+          <span class="feed-card-meta">${formatDate(e.date)}</span>
+          ${scrapeLinks}
+        </div>
       </div>`;
   }).join('');
 
