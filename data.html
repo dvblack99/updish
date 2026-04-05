@@ -56,13 +56,21 @@
   .lib-text a { color:#e8e8e8; text-decoration:none; font-size:12px; line-height:1.5; }
   .lib-text a:hover { color:#c8a96e; }
   .lib-desc { font-size:11px; color:#555; margin-top:3px; }
+  .lib-status { display:flex; align-items:center; gap:8px; margin-top:5px; flex-wrap:wrap; }
+  .lib-badge { font-size:9px; padding:2px 7px; border-radius:2px; letter-spacing:0.5px; text-transform:uppercase; }
+  .lib-badge-updated { background:rgba(200,169,110,0.15); color:#c8a96e; border:1px solid rgba(200,169,110,0.3); }
+  .lib-badge-ok      { background:rgba(76,175,121,0.1);  color:#4caf79; border:1px solid rgba(76,175,121,0.2); }
+  .lib-badge-error   { background:rgba(224,92,92,0.1);   color:#e05c5c; border:1px solid rgba(224,92,92,0.2); }
+  .lib-file-link { font-size:10px; color:#7a5f35; text-decoration:none; }
+  .lib-file-link:hover { color:#c8a96e; text-decoration:underline; }
+  .lib-meta { font-size:10px; color:#444; }
 </style>
 
 <div class="panel">
   <div class="lib-section">
     <div class="lib-section-title">Market Data & Industry Statistics</div>
 
-    <div class="lib-entry">
+    <div class="lib-entry" data-lib-id="statcan_food_dec24">
       <span class="lib-source">StatsCan</span>
       <div class="lib-text">
         <a href="https://www150.statcan.gc.ca/n1/daily-quotidien/250225/dq250225c-eng.htm" target="_blank">Food Services and Drinking Places, December 2024 — The Daily</a>
@@ -70,7 +78,7 @@
       </div>
     </div>
 
-    <div class="lib-entry">
+    <div class="lib-entry" data-lib-id="statcan_food_ann23">
       <span class="lib-source">StatsCan</span>
       <div class="lib-text">
         <a href="https://www150.statcan.gc.ca/n1/daily-quotidien/250218/dq250218d-eng.htm" target="_blank">Food Services and Drinking Places, Annual 2023</a>
@@ -78,7 +86,7 @@
       </div>
     </div>
 
-    <div class="lib-entry">
+    <div class="lib-entry" data-lib-id="statcan_food_dash">
       <span class="lib-source">StatsCan</span>
       <div class="lib-text">
         <a href="https://www150.statcan.gc.ca/n1/en/catalogue/71-607-X2017003" target="_blank">Food Services and Drinking Places Sales — Interactive Dashboard</a>
@@ -86,7 +94,7 @@
       </div>
     </div>
 
-    <div class="lib-entry">
+    <div class="lib-entry" data-lib-id="aafc_foodservice">
       <span class="lib-source">AAFC</span>
       <div class="lib-text">
         <a href="https://agriculture.canada.ca/en/international-trade/market-intelligence/reports-and-guides/foodservice-canada" target="_blank">Foodservice in Canada — Agriculture and Agri-Food Canada</a>
@@ -94,7 +102,7 @@
       </div>
     </div>
 
-    <div class="lib-entry">
+    <div class="lib-entry" data-lib-id="statcan_shs23">
       <span class="lib-source">StatsCan</span>
       <div class="lib-text">
         <a href="https://www150.statcan.gc.ca/n1/daily-quotidien/250521/dq250521a-eng.htm" target="_blank">Survey of Household Spending, 2023</a>
@@ -107,7 +115,7 @@
   <div class="lib-section">
     <div class="lib-section-title">Food Prices & Consumer Costs</div>
 
-    <div class="lib-entry">
+    <div class="lib-entry" data-lib-id="cfpr_2026_pdf">
       <span class="lib-source">Dalhousie</span>
       <div class="lib-text">
         <a href="https://cdn.dal.ca/content/dam/dalhousie/pdf/sites/agri-food/FINAL%20E%20low.res%20DAL_PRICE_REPORT_2026.pdf" target="_blank">Canada's Food Price Report 2026 (PDF)</a>
@@ -115,7 +123,7 @@
       </div>
     </div>
 
-    <div class="lib-entry">
+    <div class="lib-entry" data-lib-id="cfpr_2025_pdf">
       <span class="lib-source">Dalhousie</span>
       <div class="lib-text">
         <a href="https://cdn.dal.ca/content/dam/dalhousie/pdf/sites/agri-food/EN%20-%20Food%20Price%20Report%202025.pdf" target="_blank">Canada's Food Price Report 2025 (PDF)</a>
@@ -123,7 +131,7 @@
       </div>
     </div>
 
-    <div class="lib-entry">
+    <div class="lib-entry" data-lib-id="cfpr_2024">
       <span class="lib-source">Dalhousie</span>
       <div class="lib-text">
         <a href="https://www.dal.ca/sites/agri-food/research/canada-s-food-price-report-2024.html" target="_blank">Canada's Food Price Report 2024</a>
@@ -131,7 +139,7 @@
       </div>
     </div>
 
-    <div class="lib-entry">
+    <div class="lib-entry" data-lib-id="statcan_food_price_hub">
       <span class="lib-source">StatsCan</span>
       <div class="lib-text">
         <a href="https://www.statcan.gc.ca/en/topics-start/food-price" target="_blank">Food Price Data Hub — Statistics Canada</a>
@@ -139,7 +147,7 @@
       </div>
     </div>
 
-    <div class="lib-entry">
+    <div class="lib-entry" data-lib-id="statcan_cpi_food">
       <span class="lib-source">StatsCan</span>
       <div class="lib-text">
         <a href="https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1810000403" target="_blank">Consumer Price Index — Food, Monthly by Province (Table 18-10-0004-01)</a>
@@ -152,7 +160,7 @@
   <div class="lib-section">
     <div class="lib-section-title">Regulatory Requirements — BC Restaurants & Food Premises</div>
 
-    <div class="lib-entry">
+    <div class="lib-entry" data-lib-id="bc_food_safety_leg">
       <span class="lib-source">BC Gov</span>
       <div class="lib-text">
         <a href="https://www2.gov.bc.ca/gov/content/health/keeping-bc-healthy-safe/food-safety/food-safety-legislation" target="_blank">BC Food Safety Legislation Overview</a>
@@ -160,7 +168,7 @@
       </div>
     </div>
 
-    <div class="lib-entry">
+    <div class="lib-entry" data-lib-id="bc_food_premises_reg">
       <span class="lib-source">BC Laws</span>
       <div class="lib-text">
         <a href="https://www.bclaws.gov.bc.ca/civix/document/id/complete/statreg/210_99" target="_blank">BC Food Premises Regulation (BC Reg 210/99)</a>
@@ -168,7 +176,7 @@
       </div>
     </div>
 
-    <div class="lib-entry">
+    <div class="lib-entry" data-lib-id="bccdc_food_guidelines">
       <span class="lib-source">BCCDC</span>
       <div class="lib-text">
         <a href="https://www.bccdc.ca/health-professionals/professional-resources/food-premises-guidelines" target="_blank">Food Premises Guidelines — BC Centre for Disease Control</a>
@@ -176,7 +184,7 @@
       </div>
     </div>
 
-    <div class="lib-entry">
+    <div class="lib-entry" data-lib-id="vch_food_safety">
       <span class="lib-source">VCH</span>
       <div class="lib-text">
         <a href="https://www.vch.ca/en/food-safety-resources" target="_blank">Food Safety Resources for Operators — Vancouver Coastal Health</a>
@@ -184,7 +192,7 @@
       </div>
     </div>
 
-    <div class="lib-entry">
+    <div class="lib-entry" data-lib-id="fraser_new_biz">
       <span class="lib-source">Fraser Health</span>
       <div class="lib-text">
         <a href="https://www.fraserhealth.ca/health-topics-a-to-z/food-safety/requirements-for-food-businesses" target="_blank">Requirements for New Food Businesses — Fraser Health</a>
@@ -192,7 +200,7 @@
       </div>
     </div>
 
-    <div class="lib-entry">
+    <div class="lib-entry" data-lib-id="foodsafe_resources">
       <span class="lib-source">BC Gov</span>
       <div class="lib-text">
         <a href="https://www.foodsafe.ca/resources.html" target="_blank">FOODSAFE Program Resources</a>
@@ -205,7 +213,7 @@
   <div class="lib-section">
     <div class="lib-section-title">BC Agriculture, Local Producers & Supply Chain</div>
 
-    <div class="lib-entry">
+    <div class="lib-entry" data-lib-id="bc_ag_stats">
       <span class="lib-source">BC Gov</span>
       <div class="lib-text">
         <a href="https://www2.gov.bc.ca/gov/content/industry/agriculture-seafood/statistics/agriculture-and-seafood-statistics-publications" target="_blank">BC Agriculture & Seafood Statistics Publications</a>
@@ -213,7 +221,7 @@
       </div>
     </div>
 
-    <div class="lib-entry">
+    <div class="lib-entry" data-lib-id="bc_maf">
       <span class="lib-source">BC Gov</span>
       <div class="lib-text">
         <a href="https://gov.bc.ca/af" target="_blank">BC Ministry of Agriculture and Food</a>
@@ -221,7 +229,7 @@
       </div>
     </div>
 
-    <div class="lib-entry">
+    <div class="lib-entry" data-lib-id="bc_gap">
       <span class="lib-source">BC Gov</span>
       <div class="lib-text">
         <a href="https://www2.gov.bc.ca/gov/content/industry/agriculture-seafood/food-safety/good-agricultural-practices/scope-of-good-agricultural-practices" target="_blank">Good Agricultural Practices — On-Farm Food Safety</a>
@@ -229,7 +237,7 @@
       </div>
     </div>
 
-    <div class="lib-entry">
+    <div class="lib-entry" data-lib-id="bc_maf_annual_pdf">
       <span class="lib-source">BC Gov</span>
       <div class="lib-text">
         <a href="https://www.bcbudget.gov.bc.ca/Annual_Reports/2024_2025/pdf/ministry/af.pdf" target="_blank">BC Ministry of Agriculture & Food — 2024/25 Annual Service Plan Report (PDF)</a>
@@ -237,7 +245,7 @@
       </div>
     </div>
 
-    <div class="lib-entry">
+    <div class="lib-entry" data-lib-id="bc_food_class_act">
       <span class="lib-source">BC Laws</span>
       <div class="lib-text">
         <a href="https://www.bclaws.gov.bc.ca/civix/document/id/complete/statreg/16001" target="_blank">BC Food and Agricultural Products Classification Act</a>
@@ -250,7 +258,7 @@
   <div class="lib-section">
     <div class="lib-section-title">Mixed-Use Development & Commercial Zoning (Lower Mainland)</div>
 
-    <div class="lib-entry">
+    <div class="lib-entry" data-lib-id="van_zoning_lib">
       <span class="lib-source">Vancouver</span>
       <div class="lib-text">
         <a href="https://vancouver.ca/home-property-development/zoning-and-land-use-policies-document-library.aspx" target="_blank">City of Vancouver Zoning & Land Use Document Library</a>
@@ -258,7 +266,7 @@
       </div>
     </div>
 
-    <div class="lib-entry">
+    <div class="lib-entry" data-lib-id="van_c2_pdf">
       <span class="lib-source">Vancouver</span>
       <div class="lib-text">
         <a href="https://bylaws.vancouver.ca/zoning/zoning-by-law-district-schedule-c-2.pdf" target="_blank">Vancouver Zoning By-law — C-2 District Schedule (PDF)</a>
@@ -266,7 +274,7 @@
       </div>
     </div>
 
-    <div class="lib-entry">
+    <div class="lib-entry" data-lib-id="van_zoning_bylaw">
       <span class="lib-source">Vancouver</span>
       <div class="lib-text">
         <a href="https://vancouver.ca/home-property-development/zoning-and-development-bylaw.aspx" target="_blank">Vancouver Zoning and Development By-law 3575</a>
@@ -279,7 +287,7 @@
   <div class="lib-section">
     <div class="lib-section-title">Consumer Behaviour — Dining Out vs. Cooking at Home</div>
 
-    <div class="lib-entry">
+    <div class="lib-entry" data-lib-id="statcan_shs23">
       <span class="lib-source">StatsCan</span>
       <div class="lib-text">
         <a href="https://www150.statcan.gc.ca/n1/daily-quotidien/250521/dq250521a-eng.htm" target="_blank">Survey of Household Spending, 2023 — Food Expenditure Detail</a>
@@ -287,7 +295,7 @@
       </div>
     </div>
 
-    <div class="lib-entry">
+    <div class="lib-entry" data-lib-id="ised_consumer_trends">
       <span class="lib-source">ISED</span>
       <div class="lib-text">
         <a href="https://ised-isde.canada.ca/site/office-consumer-affairs/en/consumer-interest-groups/consumer-trends/consumer-trends-report-chapter-9-consumer-spending" target="_blank">Consumer Trends Report — Chapter 9: Consumer Spending on Food</a>
@@ -297,24 +305,90 @@
 
   </div>
 
-  <p style="font-size:10px;color:#444;margin-top:20px;padding-top:16px;border-top:1px solid #2a2a2a;">
+  <p style="font-size:10px;color:#444;margin-top:20px;padding-top:16px;border-top:1px solid #2a2a2a;" id="libFooter">
     All sources are free government or academic publications. Last reviewed April 2026.
     Links go directly to source documents — no paywalls.
   </p>
 </div>
 </div>
 
+<!-- ── Critic & Media Feed ─────────────────────────────────────────────── -->
+<div style="margin-top:48px;">
+<h2 style="font-family:Georgia,serif;color:#c8a96e;font-weight:normal;margin-bottom:4px;font-size:18px;">Critic & Media Feed</h2>
+<p style="color:#666;font-size:11px;margin-bottom:20px;">Updated daily from RSS feeds, Google News, and Reddit — no paywalls</p>
+
+<style>
+  /* ── Feed controls ── */
+  .feed-controls { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; align-items:center; }
+  .feed-search { flex:1; min-width:200px; padding:8px 10px; background:#0f0f0f; border:1px solid #3a3a3a; color:#e8e8e8; font-family:'Courier New',monospace; font-size:12px; border-radius:3px; outline:none; }
+  .feed-search:focus { border-color:#7a5f35; }
+  .source-filter { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px; }
+  .source-btn { padding:4px 10px; font-size:10px; font-family:'Courier New',monospace; letter-spacing:0.5px; border-radius:2px; border:1px solid #3a3a3a; background:transparent; color:#666; cursor:pointer; transition:all 0.15s; }
+  .source-btn:hover { color:#e8e8e8; border-color:#666; }
+  .source-btn.active { color:#0f0f0f; border-color:transparent; }
+  /* ── Feed cards ── */
+  .feed-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:12px; }
+  .feed-card { background:#1a1a1a; border:1px solid #2a2a2a; border-radius:4px; padding:14px; display:flex; flex-direction:column; gap:6px; transition:border-color 0.15s; }
+  .feed-card:hover { border-color:#3a3a3a; }
+  .feed-card-source { font-size:10px; text-transform:uppercase; letter-spacing:1px; }
+  .feed-card-title a { color:#e8e8e8; text-decoration:none; font-size:12px; line-height:1.5; }
+  .feed-card-title a:hover { color:#c8a96e; }
+  .feed-card-excerpt { font-size:11px; color:#555; line-height:1.5; }
+  .feed-card-meta { font-size:10px; color:#444; margin-top:auto; padding-top:6px; }
+  .feed-card-reddit-score { color:#ff6314; }
+  /* ── Source directory ── */
+  .source-dir { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:10px; margin-top:12px; }
+  .source-card { background:#1a1a1a; border:1px solid #2a2a2a; border-radius:4px; padding:12px; }
+  .source-card-name { font-size:12px; margin-bottom:4px; }
+  .source-card-name a { text-decoration:none; }
+  .source-card-name a:hover { text-decoration:underline; }
+  .source-card-focus { font-size:11px; color:#555; }
+  /* ── Status / empty ── */
+  .feed-status { color:#555; font-size:12px; padding:20px 0; text-align:center; }
+  .feed-updated { font-size:10px; color:#444; margin-bottom:12px; }
+</style>
+
+<div class="panel">
+  <div class="feed-updated" id="feedUpdated">Loading feed…</div>
+
+  <div class="feed-controls">
+    <input type="text" class="feed-search" id="feedSearch" placeholder="Search by venue, keyword, or topic…">
+    <span style="font-size:11px;color:#444;" id="feedCount"></span>
+  </div>
+
+  <div class="source-filter" id="sourceFilter"></div>
+
+  <div class="feed-grid" id="feedGrid">
+    <div class="feed-status">Loading…</div>
+  </div>
+
+  <div style="text-align:center;margin-top:16px;">
+    <button id="loadMoreBtn" style="display:none;padding:8px 20px;background:transparent;border:1px solid #3a3a3a;color:#666;font-family:'Courier New',monospace;font-size:11px;cursor:pointer;border-radius:3px;" onclick="loadMore()">Load more</button>
+  </div>
+</div>
+
+<!-- ── Source Directory ── -->
+<h2 style="font-family:Georgia,serif;color:#c8a96e;font-weight:normal;margin-bottom:4px;font-size:18px;margin-top:40px;">Media Sources</h2>
+<p style="color:#666;font-size:11px;margin-bottom:16px;">Publications and communities monitored daily</p>
+
+<div class="panel">
+  <div class="source-dir" id="sourceDir"></div>
+</div>
+
+</div><!-- end critic section -->
+
 <script>
+// ── CSV parser ──────────────────────────────────────────────────────────────
 function parseCSV(text) {
   const lines = text.trim().split('\n');
   const parseRow = line => {
-    const fields = [];
+    const fields = [], ch = line;
     let cur = '', inQ = false;
     for (let i = 0; i < line.length; i++) {
-      const ch = line[i];
-      if (ch === '"') { inQ = !inQ; }
-      else if (ch === ',' && !inQ) { fields.push(cur); cur = ''; }
-      else { cur += ch; }
+      const c = line[i];
+      if (c === '"') { inQ = !inQ; }
+      else if (c === ',' && !inQ) { fields.push(cur); cur = ''; }
+      else { cur += c; }
     }
     fields.push(cur);
     return fields;
@@ -326,16 +400,13 @@ function parseCSV(text) {
   });
 }
 
+// ── Venue table ─────────────────────────────────────────────────────────────
 async function loadData() {
   try {
     const res = await fetch('./data/latest_cafes.csv');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const text = await res.text();
     const venues = parseCSV(text);
-    const text = await res.text();
-    const rows = text.trim().split('\n').map(r => r.split(',').map(c => c.replace(/^"|"$/g, '')));
-    const headers = rows[0];
-    const venues = rows.slice(1).map(r => Object.fromEntries(headers.map((h,i) => [h, r[i] || ''])));
 
     const total = venues.length;
     const cities = new Set(venues.map(r => r.city)).size;
@@ -346,7 +417,6 @@ async function loadData() {
       <div class="stat"><span class="stat-num">${cities}</span><span class="stat-label">Cities</span></div>
       <div class="stat"><span class="stat-num">${withWebsite}</span><span class="stat-label">With Website</span></div>
     `;
-
     document.getElementById('lastUpdated').textContent = new Date().toLocaleString('en-CA');
 
     const tbody = document.querySelector('#venueTable tbody');
@@ -366,14 +436,240 @@ async function loadData() {
 
     document.getElementById('search').addEventListener('input', e => {
       const term = e.target.value.toLowerCase().trim();
-      const filtered = term ? venues.filter(r => Object.values(r).some(v => (v || '').toString().toLowerCase().includes(term))) : venues;
+      const filtered = term ? venues.filter(r => Object.values(r).some(v => (v||'').toString().toLowerCase().includes(term))) : venues;
       render(filtered);
     });
   } catch (err) {
-    document.body.innerHTML += '<p style="color:#e05c5c;margin-top:40px;">Error loading data. Try refreshing the page.</p>';
+    document.body.innerHTML += '<p style="color:#e05c5c;margin-top:40px;">Error loading venue data.</p>';
   }
 }
+
+// ── Critic feed ──────────────────────────────────────────────────────────────
+const SOURCES_META = [
+  { id:'scout',              name:'Scout Magazine',          url:'https://scoutmagazine.ca',           focus:'Independent dining, cafés, openings',    color:'#e8834a' },
+  { id:'eater_van',          name:'Eater Vancouver',         url:'https://vancouver.eater.com',        focus:'Openings, closures, trends',             color:'#e05c5c' },
+  { id:'van_sun_food',       name:'Vancouver Sun — Food',    url:'https://vancouversun.com',           focus:'Reviews, features, industry news',        color:'#4a7be8' },
+  { id:'straight_food',      name:'Georgia Straight',        url:'https://www.straight.com',           focus:'Restaurant reviews, chef profiles',       color:'#4caf79' },
+  { id:'miss604',            name:'Miss604',                 url:'https://miss604.com',                focus:'Vancouver lifestyle, neighbourhood dining',color:'#c86eb5' },
+  { id:'van_is_awesome',     name:'Vancouver Is Awesome',    url:'https://www.vancouverisawesome.com', focus:'Local dining, openings, lists',            color:'#d4a84b' },
+  { id:'daily_hive_van',     name:'Daily Hive Vancouver',    url:'https://dailyhive.com/vancouver',    focus:'Openings, closures, deals',               color:'#7a5f35' },
+  { id:'van_eats',           name:'Van Eats',                url:'https://vaneats.ca',                 focus:'Restaurant reviews, food photography',    color:'#c8a96e' },
+  { id:'google_news',        name:'Google News',             url:'https://news.google.com',            focus:'Aggregated Vancouver food news (7 days)', color:'#555'    },
+  { id:'reddit_foodvancouver', name:'r/FoodVancouver',       url:'https://reddit.com/r/FoodVancouver', focus:'Community recommendations & discussion',  color:'#ff6314' },
+  { id:'reddit_vancouver',   name:'r/vancouver',             url:'https://reddit.com/r/vancouver',     focus:'Local buzz, restaurant openings',         color:'#ff6314' },
+];
+
+let allEntries = [];
+let filtered   = [];
+let activeSource = 'all';
+let searchTerm   = '';
+let visibleCount = 30;
+const PAGE_SIZE  = 30;
+
+function formatDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-CA', { month:'short', day:'numeric', year:'numeric' });
+}
+
+function renderSourceFilter(entries) {
+  const counts = {};
+  entries.forEach(e => { counts[e.source_id] = (counts[e.source_id]||0) + 1; });
+
+  const el = document.getElementById('sourceFilter');
+  const allBtn = `<button class="source-btn active" data-source="all" onclick="setSource('all')" style="background:#c8a96e;border-color:#c8a96e;">All (${entries.length})</button>`;
+  const sourceBtns = SOURCES_META
+    .filter(s => counts[s.id])
+    .map(s => `<button class="source-btn" data-source="${s.id}" onclick="setSource('${s.id}')" style="">${s.name} (${counts[s.id]||0})</button>`)
+    .join('');
+  el.innerHTML = allBtn + sourceBtns;
+}
+
+function renderSourceDir() {
+  const el = document.getElementById('sourceDir');
+  el.innerHTML = SOURCES_META.map(s => `
+    <div class="source-card">
+      <div class="source-card-name"><a href="${s.url}" target="_blank" style="color:${s.color}">${s.name}</a></div>
+      <div class="source-card-focus">${s.focus}</div>
+    </div>
+  `).join('');
+}
+
+function applyFilters() {
+  filtered = allEntries.filter(e => {
+    const matchSource = activeSource === 'all' || e.source_id === activeSource;
+    const matchSearch = !searchTerm ||
+      (e.title  || '').toLowerCase().includes(searchTerm) ||
+      (e.excerpt|| '').toLowerCase().includes(searchTerm) ||
+      (e.source || '').toLowerCase().includes(searchTerm);
+    return matchSource && matchSearch;
+  });
+  visibleCount = PAGE_SIZE;
+  renderCards();
+}
+
+function renderCards() {
+  const grid = document.getElementById('feedGrid');
+  const countEl = document.getElementById('feedCount');
+  const moreBtn = document.getElementById('loadMoreBtn');
+
+  if (!filtered.length) {
+    grid.innerHTML = '<div class="feed-status">No entries found.</div>';
+    countEl.textContent = '';
+    moreBtn.style.display = 'none';
+    return;
+  }
+
+  const slice = filtered.slice(0, visibleCount);
+  countEl.textContent = `${filtered.length} entries`;
+
+  grid.innerHTML = slice.map(e => {
+    const meta = SOURCES_META.find(s => s.id === e.source_id) || {};
+    const color = meta.color || '#666';
+    const score = e.type === 'reddit' && e.score ? `<span class="feed-card-reddit-score">↑${e.score}</span> · ` : '';
+    return `
+      <div class="feed-card">
+        <div class="feed-card-source" style="color:${color}">${e.source}</div>
+        <div class="feed-card-title"><a href="${e.url}" target="_blank" rel="noopener">${e.title}</a></div>
+        ${e.excerpt ? `<div class="feed-card-excerpt">${e.excerpt}</div>` : ''}
+        <div class="feed-card-meta">${score}${formatDate(e.date)}</div>
+      </div>`;
+  }).join('');
+
+  moreBtn.style.display = visibleCount < filtered.length ? 'inline-block' : 'none';
+
+  // Update source filter button states
+  document.querySelectorAll('.source-btn').forEach(btn => {
+    const s = btn.dataset.source;
+    const isActive = s === activeSource;
+    btn.classList.toggle('active', isActive);
+    const meta = SOURCES_META.find(m => m.id === s);
+    btn.style.background = isActive ? (s === 'all' ? '#c8a96e' : (meta?.color||'#c8a96e')) : 'transparent';
+    btn.style.color = isActive ? '#0f0f0f' : '#666';
+    btn.style.borderColor = isActive ? 'transparent' : '#3a3a3a';
+  });
+}
+
+function setSource(id) {
+  activeSource = id;
+  applyFilters();
+}
+
+function loadMore() {
+  visibleCount += PAGE_SIZE;
+  renderCards();
+}
+
+async function loadCriticFeed() {
+  try {
+    const res = await fetch('./data/critic_feed.json');
+    if (!res.ok) {
+      document.getElementById('feedGrid').innerHTML =
+        '<div class="feed-status">Feed not yet generated. Run fetch_critic_feeds.py on the VPS to populate.</div>';
+      document.getElementById('feedUpdated').textContent = 'Feed not yet generated';
+      return;
+    }
+    const data = await res.json();
+    allEntries = data.entries || [];
+
+    const updated = data.updated ? new Date(data.updated).toLocaleString('en-CA') : 'unknown';
+    document.getElementById('feedUpdated').textContent = `Last updated: ${updated} · ${allEntries.length} entries archived`;
+
+    renderSourceFilter(allEntries);
+    renderSourceDir();
+    applyFilters();
+
+    document.getElementById('feedSearch').addEventListener('input', e => {
+      searchTerm = e.target.value.toLowerCase().trim();
+      applyFilters();
+    });
+
+  } catch (err) {
+    document.getElementById('feedGrid').innerHTML =
+      '<div class="feed-status">Feed not yet generated. Run fetch_critic_feeds.py on the VPS to populate.</div>';
+    document.getElementById('feedUpdated').textContent = 'Not yet generated';
+    renderSourceDir();
+  }
+}
+
 loadData();
+loadCriticFeed();
+loadLibraryStatus();
+
+// ── Library status ───────────────────────────────────────────────────────────
+async function loadLibraryStatus() {
+  try {
+    const res = await fetch('./data/library_status.json');
+    if (!res.ok) return; // not yet generated — silent
+    const data = await res.json();
+    const entries = data.entries || {};
+    const lastChecked = data.last_checked
+      ? new Date(data.last_checked).toLocaleDateString('en-CA', {month:'short',day:'numeric',year:'numeric'})
+      : null;
+
+    // Inject status row into each lib-entry that has a data-lib-id
+    document.querySelectorAll('[data-lib-id]').forEach(el => {
+      const id  = el.dataset.libId;
+      const s   = entries[id];
+      if (!s) return;
+
+      const libText = el.querySelector('.lib-text');
+      if (!libText) return;
+
+      const parts = [];
+
+      // Badge
+      if (s.error) {
+        parts.push(`<span class="lib-badge lib-badge-error">Error</span>`);
+      } else if (s.changed) {
+        parts.push(`<span class="lib-badge lib-badge-updated">Updated</span>`);
+      } else if (s.hash) {
+        parts.push(`<span class="lib-badge lib-badge-ok">Verified</span>`);
+      }
+
+      // File size
+      if (s.size_bytes) {
+        const kb = Math.round(s.size_bytes / 1024);
+        parts.push(`<span class="lib-meta">${kb} KB</span>`);
+      }
+
+      // Local file links
+      const base = `./data/library/${id}/`;
+      if (s.type === 'pdf') {
+        parts.push(`<a class="lib-file-link" href="${base}document.pdf" target="_blank">↓ PDF</a>`);
+        parts.push(`<a class="lib-file-link" href="${base}document.txt" target="_blank">TXT</a>`);
+      } else if (s.type === 'html') {
+        parts.push(`<a class="lib-file-link" href="${base}page.html" target="_blank">↓ HTML</a>`);
+        parts.push(`<a class="lib-file-link" href="${base}page.txt" target="_blank">TXT</a>`);
+      }
+
+      // Last checked
+      if (s.last_checked) {
+        const d = new Date(s.last_checked).toLocaleDateString('en-CA', {month:'short', day:'numeric'});
+        parts.push(`<span class="lib-meta">checked ${d}</span>`);
+      }
+
+      if (parts.length) {
+        const statusEl = document.createElement('div');
+        statusEl.className = 'lib-status';
+        statusEl.innerHTML = parts.join('');
+        libText.appendChild(statusEl);
+      }
+    });
+
+    // Update footer
+    if (lastChecked) {
+      const footer = document.getElementById('libFooter');
+      if (footer) {
+        const changed = data.changed_count || 0;
+        footer.innerHTML += ` · Last scraped: ${lastChecked}${changed ? ` · <span style="color:#c8a96e">${changed} updated</span>` : ''}`;
+      }
+    }
+
+  } catch(e) {
+    // Silent — status is enhancement only
+  }
+}
 </script>
 </body>
 </html>
