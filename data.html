@@ -474,15 +474,13 @@ async function loadData() {
     const total = venues.length;
     const cities = new Set(venues.map(r => r.city)).size;
     const withWebsite = venues.filter(r => r.website && r.website.trim() !== '').length;
-    const scraped = Object.keys(venueStatus).length;
-    const summarized = Object.values(venueStatus).filter(v => v.has_summary).length;
 
     document.getElementById('stats').innerHTML = `
       <div class="stat"><span class="stat-num">${total}</span><span class="stat-label">Total Venues</span></div>
       <div class="stat"><span class="stat-num">${cities}</span><span class="stat-label">Cities</span></div>
       <div class="stat"><span class="stat-num">${withWebsite}</span><span class="stat-label">With Website</span></div>
-      <div class="stat"><span class="stat-num">${scraped}</span><span class="stat-label">Scraped</span></div>
-      <div class="stat"><span class="stat-num">${summarized}</span><span class="stat-label">Summarized</span></div>
+      <div class="stat"><span class="stat-num" id="statScraped">—</span><span class="stat-label">Scraped</span></div>
+      <div class="stat"><span class="stat-num" id="statSummarized">—</span><span class="stat-label">Summarized</span></div>
     `;
     document.getElementById('lastUpdated').textContent = new Date().toLocaleString('en-CA');
 
@@ -509,14 +507,12 @@ async function loadData() {
     await loadVenueStatus();
     await loadSummariesIndex();
 
-    // Update scraped/summarized counts now that status is loaded
     const scraped2 = Object.keys(venueStatus).length;
     const summarized2 = Object.values(venueStatus).filter(v => v.has_summary).length;
-    document.querySelectorAll('.stat').forEach(el => {
-      const label = el.querySelector('.stat-label')?.textContent;
-      if (label === 'Scraped') el.querySelector('.stat-num').textContent = scraped2;
-      if (label === 'Summarized') el.querySelector('.stat-num').textContent = summarized2;
-    });
+    const s1 = document.getElementById('statScraped');
+    const s2 = document.getElementById('statSummarized');
+    if (s1) s1.textContent = scraped2;
+    if (s2) s2.textContent = summarized2;
 
     const tbody = document.querySelector('#venueTable tbody');
 
