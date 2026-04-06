@@ -509,7 +509,8 @@ async function loadData() {
 
     function getVenueStatus(name) {
       const vs = venueStatus[name] || {};
-      const ss = summariesIndex[vs.safe_dir || re.sub(/[^\w\s\-]/g,'_',name).substring(0,80)] || summariesIndex[name] || {};
+      const safeDir = vs.safe_dir || name.replace(/[^\w\s\-]/g,'_').substring(0,80);
+      const ss = summariesIndex[safeDir] || summariesIndex[name] || {};
       if (vs.error) return {dot:'dot-error', label:'Error', vs, ss};
       if (ss.summary || vs.has_summary) return {dot: vs.changed ? 'dot-updated' : 'dot-summarized', label: vs.changed ? 'Updated' : 'Summarized', vs, ss};
       if (vs.file) return {dot:'dot-scraped', label:'Scraped', vs, ss};
@@ -871,18 +872,182 @@ async function loadLibraryStatus() {
 </script>
 
 
+
 <script>
 let chatHistory = [];
-let summariesForChat = {};
 
-fetch('./data/summaries_index.json').then(r => r.ok ? r.json() : null).then(d => {
-  if (d) {
-    summariesForChat = d.venues || {};
-    const count = Object.keys(summariesForChat).length;
-    document.getElementById('chatContextInfo').textContent =
-      count ? `${count} venue summaries loaded as context` : 'No venue summaries yet — run the scraper first';
+// ── Index data (compact — loaded once, always in memory) ────────────────────
+let venueIndex    = [];   // [{name, city, type, safe_dir}]
+let summaryIndex  = {};   // {safe_dir: {name, city, ...compact}}
+let libraryIndex  = [];   // [{id, title}]
+let criticIndex   = [];   // [{id, title, source, date, excerpt}]
+
+async function loadChatContext() {
+  try {
+    const r = await fetch('./data/latest_cafes.csv');
+    if (r.ok) {
+      const text = await r.text();
+      venueIndex = text.trim().split('\n').slice(1).map(l => {
+        const p = l.split(',');
+        return { name:(p[0]||'').replace(/"/g,''), city:(p[1]||'').replace(/"/g,''), type:(p[2]||'').replace(/"/g,'') };
+      }).filter(v => v.name);
+    }
+  } catch(e) {}
+
+  try {
+    const r = await fetch('./data/summaries_index.json');
+    if (r.ok) { const d = await r.json(); summaryIndex = d.venues || {}; }
+  } catch(e) {}
+
+  try {
+    const r = await fetch('./data/library_status.json');
+    if (r.ok) {
+      const d = await r.json();
+      libraryIndex = Object.entries(d.entries || {}).map(([id,e]) => ({ id, title: e.title, type: e.type }));
+    }
+  } catch(e) {}
+
+  try {
+    const r = await fetch('./data/critic_feed.json');
+    if (r.ok) {
+      const d = await r.json();
+      criticIndex = (d.entries || []).slice(0, 100).map((e,i) => ({
+        i, id: e.id, title: e.title, source: e.source, date: e.date?.slice(0,10), excerpt: e.excerpt
+      }));
+    }
+  } catch(e) {}
+
+  const el = document.getElementById('chatContextInfo');
+  if (el) el.textContent =
+    `${venueIndex.length.toLocaleString()} venues · ${Object.keys(summaryIndex).length} summarized · ${libraryIndex.length} library docs · ${criticIndex.length} critic articles`;
+}
+loadChatContext();
+
+// ── Fetchers ────────────────────────────────────────────────────────────────
+
+async function fetchText(path) {
+  try { const r = await fetch(path); return r.ok ? await r.text() : null; }
+  catch(e) { return null; }
+}
+
+async function fetchJSON(path) {
+  try { const r = await fetch(path); return r.ok ? await r.json() : null; }
+  catch(e) { return null; }
+}
+
+async function callClaude(system, messages, maxTokens=1000) {
+  const r = await fetch('/api/claude', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','X-Proxy-Token':'Lindsey123!'},
+    body: JSON.stringify({ model:'claude-haiku-4-5-20251001', max_tokens:maxTokens, system, messages })
+  });
+  const d = await r.json();
+  return d.content?.[0]?.text || '';
+}
+
+// ── Router: decide what to fetch ────────────────────────────────────────────
+
+async function route(question) {
+  // Build compact index for router
+  const venueList = venueIndex.slice(0,200).map(v=>`${v.name}|${v.city}`).join(';');
+  const summaryNames = Object.values(summaryIndex).map(s=>s.name).join(', ');
+  const libTitles = libraryIndex.map(l=>`${l.id}:${l.title}`).join('; ');
+  const criticTitles = criticIndex.slice(0,30).map(a=>`${a.i}:${a.source}:${a.title}`).join('\n');
+
+  const routerSystem = `You are a data router. Given a question and an index of available data, return ONLY a JSON object specifying what to fetch. Be minimal — only fetch what's genuinely needed.
+
+Available data:
+VENUES (${venueIndex.length} total, sample): ${venueList}
+SUMMARIZED VENUES: ${summaryNames || 'none yet'}
+LIBRARY DOCS: ${libTitles}
+CRITIC ARTICLES (sample): ${criticTitles}
+
+Return JSON like:
+{
+  "venue_names": ["exact venue name to get summary for"],
+  "venue_txt": ["exact venue name to get full scraped text"],
+  "library_ids": ["doc_id to get full text"],
+  "critic_indices": [0, 1, 2],
+  "venue_list_query": "city or type filter if listing venues e.g. 'North Vancouver cafe'",
+  "needs_venue_list": false
+}
+Only include keys you actually need. Empty arrays/false for everything else.`;
+
+  try {
+    const raw = await callClaude(routerSystem, [{role:'user', content: question}], 300);
+    const clean = raw.replace(/```json|```/g,'').trim();
+    const m = clean.match(/\{[\s\S]*\}/);
+    return m ? JSON.parse(m[0]) : {};
+  } catch(e) { return {}; }
+}
+
+// ── Gather context based on router decision ──────────────────────────────────
+
+async function gatherContext(plan, question) {
+  const parts = [];
+
+  // Venue list (filtered or full sample)
+  if (plan.needs_venue_list || plan.venue_list_query) {
+    const q = (plan.venue_list_query || '').toLowerCase();
+    const filtered = q
+      ? venueIndex.filter(v => (v.city+' '+v.type+' '+v.name).toLowerCase().includes(q))
+      : venueIndex.slice(0, 500);
+    parts.push(`VENUE LIST (${filtered.length} matching):\n${filtered.map(v=>`${v.name} — ${v.city} (${v.type})`).join('\n')}`);
   }
-}).catch(()=>{});
+
+  // Full venue name list always available for counting/listing
+  if (!plan.needs_venue_list && !plan.venue_list_query) {
+    parts.push(`TOTAL VENUES IN DATABASE: ${venueIndex.length} across ${[...new Set(venueIndex.map(v=>v.city))].length} cities`);
+  }
+
+  // Venue summaries
+  for (const name of (plan.venue_names || []).slice(0, 5)) {
+    const entry = Object.values(summaryIndex).find(s => s.name?.toLowerCase() === name.toLowerCase());
+    if (entry) {
+      parts.push(`VENUE SUMMARY — ${name}:\n${JSON.stringify(entry, null, 2)}`);
+    }
+  }
+
+  // Full venue scraped text
+  for (const name of (plan.venue_txt || []).slice(0, 3)) {
+    const vs = Object.values(summaryIndex).find(s => s.name?.toLowerCase() === name.toLowerCase());
+    if (vs) {
+      const safeDir = name.replace(/[^\w\s\-]/g,'_').substring(0,80);
+      const txt = await fetchText(`./data/venues/${safeDir}/page_1.txt`);
+      if (txt) parts.push(`VENUE FULL TEXT — ${name}:\n${txt.substring(0,3000)}`);
+    }
+  }
+
+  // Library docs
+  for (const id of (plan.library_ids || []).slice(0, 3)) {
+    const entry = libraryIndex.find(l => l.id === id);
+    if (entry) {
+      const path = entry.type === 'pdf'
+        ? `./data/library/${id}/document.txt`
+        : `./data/library/${id}/page.txt`;
+      const txt = await fetchText(path);
+      if (txt) parts.push(`LIBRARY DOC — ${entry.title}:\n${txt.substring(0, 4000)}`);
+      else parts.push(`LIBRARY DOC — ${entry.title}: (not yet downloaded)`);
+    }
+  }
+
+  // Critic articles
+  for (const i of (plan.critic_indices || []).slice(0, 8)) {
+    const a = criticIndex[i];
+    if (a) {
+      const scraped = await fetchText(`./data/critic_scrapes/${a.id}/page.txt`);
+      if (scraped) {
+        parts.push(`CRITIC ARTICLE — ${a.source} "${a.title}":\n${scraped.substring(0,2000)}`);
+      } else {
+        parts.push(`CRITIC ARTICLE — ${a.source} "${a.title}" (${a.date}): ${a.excerpt || ''}`);
+      }
+    }
+  }
+
+  return parts.join('\n\n---\n\n');
+}
+
+// ── Main chat handler ────────────────────────────────────────────────────────
 
 async function sendChat() {
   const input    = document.getElementById('chatInput');
@@ -895,42 +1060,40 @@ async function sendChat() {
   msgs.innerHTML += `<div class="chat-msg user">▶ ${question}</div>`;
   input.value = '';
   send.disabled = true;
-  msgs.innerHTML += `<div class="chat-msg system" id="chatTyping">Thinking…</div>`;
+
+  const typingEl = document.createElement('div');
+  typingEl.className = 'chat-msg system';
+  typingEl.id = 'chatTyping';
+  typingEl.textContent = 'Routing query…';
+  msgs.appendChild(typingEl);
   msgs.scrollTop = msgs.scrollHeight;
 
-  const qLower = question.toLowerCase();
-  const relevant = Object.values(summariesForChat).filter(s => {
-    const text = JSON.stringify(s).toLowerCase();
-    return qLower.split(' ').some(w => w.length > 3 && text.includes(w));
-  }).slice(0, 20);
-
-  const context = relevant.length
-    ? `\n\nRELEVANT VENUE DATA:\n${relevant.map(s => JSON.stringify(s)).join('\n')}`
-    : `\n\nVENUE DATABASE: ${Object.keys(summariesForChat).length} venues summarized. No specific matches found.`;
-
-  const systemPrompt = `You are Updish, an AI assistant for the Lower Mainland café and restaurant database covering Vancouver and surrounding areas. Answer helpfully and cite specific venues by name when you have data. Be concise.${context}`;
-
   try {
-    const response = await fetch('/api/claude', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json', 'X-Proxy-Token':'Lindsey123!'},
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1000,
-        system: systemPrompt,
-        messages: chatHistory,
-      })
-    });
-    const data  = await response.json();
-    const reply = data.content?.[0]?.text || 'No response received.';
+    // Step 1: Route
+    typingEl.textContent = 'Routing query…';
+    const plan = await route(question);
+
+    // Step 2: Fetch relevant data
+    typingEl.textContent = 'Fetching relevant data…';
+    const context = await gatherContext(plan, question);
+
+    // Step 3: Answer
+    typingEl.textContent = 'Thinking…';
+    const systemPrompt = `You are Updish, an AI assistant for the Lower Mainland café and restaurant database (Vancouver area). Answer helpfully using the provided data. Cite specific venues by name. Be concise but complete.
+
+${context}`;
+
+    const reply = await callClaude(systemPrompt, chatHistory);
     chatHistory.push({role:'assistant', content: reply});
-    document.getElementById('chatTyping')?.remove();
+    typingEl.remove();
     msgs.innerHTML += `<div class="chat-msg assistant">${reply.replace(/\n/g,'<br>')}</div>`;
     if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
+
   } catch(e) {
-    document.getElementById('chatTyping')?.remove();
+    typingEl.remove();
     msgs.innerHTML += `<div class="chat-msg system" style="color:#e05c5c">Error: ${e.message}</div>`;
   }
+
   send.disabled = false;
   msgs.scrollTop = msgs.scrollHeight;
 }
