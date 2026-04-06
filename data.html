@@ -68,6 +68,22 @@
   <span id="aiTokens" style="color:#333">—</span>
 </div>
 
+<!-- ── Chatbot ─────────────────────────────────────────────────────────────── -->
+<div class="chat-wrap" style="margin-top:0;margin-bottom:24px;">
+  <h2 style="font-family:Georgia,serif;color:#c8a96e;font-weight:normal;margin-bottom:4px;font-size:18px;">Ask Updish</h2>
+  <p style="color:#666;font-size:11px;margin-bottom:16px;">Ask questions about venues, menus, hours, or the Lower Mainland food scene</p>
+  <div class="panel">
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-msg system">Ask me anything about the venues in this database. I have access to AI-generated summaries for venues that have been processed.</div>
+    </div>
+    <div class="chat-input-row">
+      <input type="text" class="chat-input" id="chatInput" placeholder="e.g. Which cafés in North Van mention locally sourced food?" onkeydown="if(event.key==='Enter')sendChat()">
+      <button class="chat-send" id="chatSend" onclick="sendChat()">Send</button>
+    </div>
+    <div class="chat-context-info" id="chatContextInfo"></div>
+  </div>
+</div>
+
 <div class="panel">
   <div id="stats" style="display:flex;flex-wrap:wrap;gap:12px;"></div>
 </div>
@@ -854,21 +870,6 @@ async function loadLibraryStatus() {
 }
 </script>
 
-<!-- ── Chatbot ─────────────────────────────────────────────────────────────── -->
-<div class="chat-wrap">
-  <h2 style="font-family:Georgia,serif;color:#c8a96e;font-weight:normal;margin-bottom:4px;font-size:18px;">Ask Updish</h2>
-  <p style="color:#666;font-size:11px;margin-bottom:16px;">Ask questions about venues, menus, hours, or the Lower Mainland food scene</p>
-  <div class="panel">
-    <div class="chat-messages" id="chatMessages">
-      <div class="chat-msg system">Ask me anything about the venues in this database. I have access to AI-generated summaries for venues that have been processed.</div>
-    </div>
-    <div class="chat-input-row">
-      <input type="text" class="chat-input" id="chatInput" placeholder="e.g. Which cafés in North Van mention locally sourced food?" onkeydown="if(event.key==='Enter')sendChat()">
-      <button class="chat-send" id="chatSend" onclick="sendChat()">Send</button>
-    </div>
-    <div class="chat-context-info" id="chatContextInfo"></div>
-  </div>
-</div>
 
 <script>
 let chatHistory = [];
@@ -910,9 +911,9 @@ async function sendChat() {
   const systemPrompt = `You are Updish, an AI assistant for the Lower Mainland café and restaurant database covering Vancouver and surrounding areas. Answer helpfully and cite specific venues by name when you have data. Be concise.${context}`;
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('/api/claude', {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      headers: {'Content-Type':'application/json', 'X-Proxy-Token':'Lindsey123!'},
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 1000,
