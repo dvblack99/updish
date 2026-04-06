@@ -474,11 +474,15 @@ async function loadData() {
     const total = venues.length;
     const cities = new Set(venues.map(r => r.city)).size;
     const withWebsite = venues.filter(r => r.website && r.website.trim() !== '').length;
+    const scraped = Object.keys(venueStatus).length;
+    const summarized = Object.values(venueStatus).filter(v => v.has_summary).length;
 
     document.getElementById('stats').innerHTML = `
       <div class="stat"><span class="stat-num">${total}</span><span class="stat-label">Total Venues</span></div>
       <div class="stat"><span class="stat-num">${cities}</span><span class="stat-label">Cities</span></div>
       <div class="stat"><span class="stat-num">${withWebsite}</span><span class="stat-label">With Website</span></div>
+      <div class="stat"><span class="stat-num">${scraped}</span><span class="stat-label">Scraped</span></div>
+      <div class="stat"><span class="stat-num">${summarized}</span><span class="stat-label">Summarized</span></div>
     `;
     document.getElementById('lastUpdated').textContent = new Date().toLocaleString('en-CA');
 
@@ -504,6 +508,15 @@ async function loadData() {
 
     await loadVenueStatus();
     await loadSummariesIndex();
+
+    // Update scraped/summarized counts now that status is loaded
+    const scraped2 = Object.keys(venueStatus).length;
+    const summarized2 = Object.values(venueStatus).filter(v => v.has_summary).length;
+    document.querySelectorAll('.stat').forEach(el => {
+      const label = el.querySelector('.stat-label')?.textContent;
+      if (label === 'Scraped') el.querySelector('.stat-num').textContent = scraped2;
+      if (label === 'Summarized') el.querySelector('.stat-num').textContent = summarized2;
+    });
 
     const tbody = document.querySelector('#venueTable tbody');
 
@@ -537,13 +550,21 @@ async function loadData() {
       let imgHtml = '';
       if (ss.images?.length) {
         imgHtml = `<div class="detail-images"><div class="detail-label" style="margin-bottom:6px;">Images (${ss.images.length})</div>`;
+        imgHtml += '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;">';
         imgHtml += ss.images.map((img,i) => {
-          const localLink = img.local_file ? `<a class="img-link" href="${base}${img.local_file}" target="_blank">↓ ${i+1}</a>` : '';
-          const extLink   = `<a class="img-link" href="${img.url}" target="_blank">↗ orig</a>`;
-          const desc      = img.description ? `<span class="img-desc">${img.description}</span>` : '';
-          return `<div style="margin:4px 0;">${localLink}${extLink} ${desc}</div>`;
+          const localSrc = img.local_file ? `./data/venues/${safe}/${img.local_file}` : img.url;
+          const desc = img.description || img.alt || `Image ${i+1}`;
+          const typeTag = img.type && img.type !== 'unknown'
+            ? `<span style="font-size:9px;color:#7a5f35;text-transform:uppercase;">${img.type}</span>` : '';
+          return `<div style="width:120px;font-size:10px;color:#555;">
+            <a href="${localSrc}" target="_blank">
+              <img src="${localSrc}" style="width:120px;height:80px;object-fit:cover;border:1px solid #2a2a2a;border-radius:2px;display:block;margin-bottom:3px;" onerror="this.style.display='none'">
+            </a>
+            ${typeTag}
+            <div style="color:#555;font-size:9px;line-height:1.3;">${desc.substring(0,60)}</div>
+          </div>`;
         }).join('');
-        imgHtml += '</div>';
+        imgHtml += '</div></div>';
       }
 
       let fileLinks = '';
