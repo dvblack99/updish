@@ -10,19 +10,63 @@
   h1 { font-family:Georgia,serif; color:var(--accent); margin-bottom:8px; }
   .panel { background:var(--surface); border:1px solid var(--border); border-radius:4px; padding:20px; margin-bottom:24px; }
   table { width:100%; border-collapse:collapse; font-size:12px; }
-  th, td { padding:8px 10px; text-align:left; border-bottom:1px solid var(--border); }
-  th { background:var(--surface); position:sticky; top:0; }
+  th, td { padding:8px 10px; text-align:left; border-bottom:1px solid var(--border); vertical-align:top; }
+  th { background:var(--surface); position:sticky; top:0; z-index:1; }
   tr:hover { background:rgba(200,169,110,0.08); }
-  .search { width:100%; padding:10px; background:var(--bg); border:1px solid var(--border); color:var(--text); margin-bottom:16px; }
+  .search { width:100%; padding:10px; background:var(--bg); border:1px solid var(--border); color:var(--text); margin-bottom:16px; font-family:'Courier New',monospace; }
   .stat { display:inline-flex; flex-direction:column; align-items:center; background:var(--bg); border:1px solid var(--border); padding:12px 16px; border-radius:4px; margin:0 8px 8px 0; }
   .stat-num { font-size:28px; color:var(--accent); line-height:1; }
   .stat-label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; }
   a { color:var(--accent); text-decoration:none; }
   a:hover { text-decoration:underline; }
+  /* Status dots */
+  .dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px; flex-shrink:0; }
+  .dot-none     { background:#333; }
+  .dot-scraped  { background:#d4a84b; }
+  .dot-summarized { background:#4caf79; }
+  .dot-updated  { background:#4a7be8; }
+  .dot-error    { background:#e05c5c; }
+  /* Expandable row */
+  .venue-detail { display:none; background:#111; padding:14px 16px; border-top:1px solid #222; font-size:11px; }
+  .venue-detail.open { display:block; }
+  .detail-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; margin-bottom:12px; }
+  .detail-field { }
+  .detail-label { font-size:9px; text-transform:uppercase; letter-spacing:1px; color:#555; margin-bottom:2px; }
+  .detail-value { color:#ccc; }
+  .detail-images { margin-top:10px; }
+  .img-link { display:inline-block; font-size:10px; color:#7a5f35; margin:2px 4px; text-decoration:none; }
+  .img-link:hover { color:#c8a96e; }
+  .img-desc { font-size:10px; color:#555; }
+  /* AI cost banner */
+  .ai-cost-bar { background:#111; border:1px solid #2a2a2a; border-radius:3px; padding:8px 14px; margin-bottom:20px; font-size:11px; color:#555; display:flex; gap:20px; flex-wrap:wrap; }
+  .ai-cost-bar span { white-space:nowrap; }
+  .ai-cost-bar .hi { color:#c8a96e; }
+  /* Chatbot */
+  .chat-wrap { margin-top:48px; }
+  .chat-messages { background:#0a0a0a; border:1px solid #2a2a2a; border-radius:3px; padding:14px; min-height:160px; max-height:400px; overflow-y:auto; margin-bottom:10px; font-size:12px; }
+  .chat-msg { margin-bottom:12px; line-height:1.6; }
+  .chat-msg.user { color:#c8a96e; }
+  .chat-msg.assistant { color:#ccc; }
+  .chat-msg.system { color:#555; font-style:italic; }
+  .chat-input-row { display:flex; gap:8px; }
+  .chat-input { flex:1; padding:10px; background:#0f0f0f; border:1px solid #3a3a3a; color:#e8e8e8; font-family:'Courier New',monospace; font-size:12px; border-radius:3px; outline:none; }
+  .chat-input:focus { border-color:#7a5f35; }
+  .chat-send { padding:10px 18px; background:transparent; border:1px solid #7a5f35; color:#c8a96e; font-family:'Courier New',monospace; font-size:12px; cursor:pointer; border-radius:3px; }
+  .chat-send:hover { background:rgba(200,169,110,0.08); }
+  .chat-send:disabled { opacity:0.4; cursor:not-allowed; }
+  .chat-context-info { font-size:10px; color:#444; margin-top:6px; }
 </style>
 </head>
 <body>
-<header><h1>Updish — Lower Mainland Venues</h1><p>4,831 cafés & restaurants from OpenStreetMap • Last updated: <span id="lastUpdated"></span></p></header>
+<header>
+  <h1>Updish — Lower Mainland Venues</h1>
+  <p>Cafés & restaurants from OpenStreetMap • Last updated: <span id="lastUpdated"></span></p>
+</header>
+<div class="ai-cost-bar" id="aiCostBar">
+  <span>AI spend: <span class="hi" id="aiTotal">—</span> cumulative</span>
+  <span>Today: <span class="hi" id="aiToday">—</span></span>
+  <span id="aiTokens" style="color:#333">—</span>
+</div>
 
 <div class="panel">
   <div id="stats" style="display:flex;flex-wrap:wrap;gap:12px;"></div>
@@ -32,7 +76,7 @@
   <input type="text" id="search" class="search" placeholder="Search by name, city, or type...">
   <div style="max-height:650px;overflow:auto;border:1px solid var(--border);border-radius:3px;">
     <table id="venueTable">
-      <thead><tr><th>Name</th><th>City</th><th>Type</th><th>Address</th><th>Website</th><th>Phone</th><th>Scrape</th><th>Photos</th></tr></thead>
+      <thead><tr><th>●</th><th>Name</th><th>City</th><th>Type</th><th>Website</th><th>Phone</th></tr></thead>
       <tbody></tbody>
     </table>
   </div>
@@ -423,6 +467,7 @@ async function loadData() {
     document.getElementById('lastUpdated').textContent = new Date().toLocaleString('en-CA');
 
     let venueStatus = {};
+    let summariesIndex = {};
 
     async function loadVenueStatus() {
       try {
@@ -431,61 +476,130 @@ async function loadData() {
       } catch(e) {}
     }
 
+    async function loadSummariesIndex() {
+      try {
+        const res = await fetch('./data/summaries_index.json');
+        if (res.ok) {
+          const data = await res.json();
+          summariesIndex = data.venues || {};
+        }
+      } catch(e) {}
+    }
+
     await loadVenueStatus();
+    await loadSummariesIndex();
 
     const tbody = document.querySelector('#venueTable tbody');
+
+    function getVenueStatus(name) {
+      const vs = venueStatus[name] || {};
+      const ss = summariesIndex[vs.safe_dir || re.sub(/[^\w\s\-]/g,'_',name).substring(0,80)] || summariesIndex[name] || {};
+      if (vs.error) return {dot:'dot-error', label:'Error', vs, ss};
+      if (ss.summary || vs.has_summary) return {dot: vs.changed ? 'dot-updated' : 'dot-summarized', label: vs.changed ? 'Updated' : 'Summarized', vs, ss};
+      if (vs.file) return {dot:'dot-scraped', label:'Scraped', vs, ss};
+      return {dot:'dot-none', label:'', vs, ss};
+    }
+
+    function renderDetail(name, st) {
+      const {vs, ss} = st;
+      if (!vs.file && !ss.summary) return '';
+      const safe = vs.safe_dir || name.replace(/[^\w\s\-]/g,'_').substring(0,80);
+      const base = `./data/venues/${safe}/`;
+
+      let fields = '';
+      if (ss.hours) fields += `<div class="detail-field"><div class="detail-label">Hours</div><div class="detail-value">${JSON.stringify(ss.hours)}</div></div>`;
+      if (ss.price_range) fields += `<div class="detail-field"><div class="detail-label">Price</div><div class="detail-value">${ss.price_range}</div></div>`;
+      if (ss.cuisine_type?.length) fields += `<div class="detail-field"><div class="detail-label">Cuisine</div><div class="detail-value">${ss.cuisine_type.join(', ')}</div></div>`;
+      if (ss.services?.length) fields += `<div class="detail-field"><div class="detail-label">Services</div><div class="detail-value">${ss.services.join(', ')}</div></div>`;
+      if (ss.dietary_options?.length) fields += `<div class="detail-field"><div class="detail-label">Dietary</div><div class="detail-value">${ss.dietary_options.join(', ')}</div></div>`;
+      if (ss.sourcing?.length) fields += `<div class="detail-field"><div class="detail-label">Sourcing</div><div class="detail-value">${ss.sourcing.join(', ')}</div></div>`;
+      if (ss.vibe) fields += `<div class="detail-field" style="grid-column:1/-1"><div class="detail-label">Vibe</div><div class="detail-value">${ss.vibe}</div></div>`;
+      if (ss.summary) fields += `<div class="detail-field" style="grid-column:1/-1"><div class="detail-label">Summary</div><div class="detail-value">${ss.summary}</div></div>`;
+      if (ss.recent_news) fields += `<div class="detail-field" style="grid-column:1/-1"><div class="detail-label">Recent News</div><div class="detail-value">${ss.recent_news}</div></div>`;
+
+      let imgHtml = '';
+      if (ss.images?.length) {
+        imgHtml = `<div class="detail-images"><div class="detail-label" style="margin-bottom:6px;">Images (${ss.images.length})</div>`;
+        imgHtml += ss.images.map((img,i) => {
+          const localLink = img.local_file ? `<a class="img-link" href="${base}${img.local_file}" target="_blank">↓ ${i+1}</a>` : '';
+          const extLink   = `<a class="img-link" href="${img.url}" target="_blank">↗ orig</a>`;
+          const desc      = img.description ? `<span class="img-desc">${img.description}</span>` : '';
+          return `<div style="margin:4px 0;">${localLink}${extLink} ${desc}</div>`;
+        }).join('');
+        imgHtml += '</div>';
+      }
+
+      let fileLinks = '';
+      if (vs.file) {
+        fileLinks = `<div style="margin-top:8px;font-size:10px;">
+          <a href="${base}page_1.html" target="_blank" style="color:#7a5f35">HTML</a> ·
+          <a href="${base}page_1.txt" target="_blank" style="color:#7a5f35">TXT</a> ·
+          <a href="${base}sitemap.json" target="_blank" style="color:#7a5f35">Sitemap</a>
+          ${vs.pages_count ? `· ${vs.pages_count} pages` : ''}
+          ${vs.images_count ? `· ${vs.images_count} images` : ''}
+        </div>`;
+      }
+
+      return `<tr class="venue-detail" id="detail-${name.replace(/[^a-z0-9]/gi,'_')}">
+        <td colspan="6" style="padding:0;">
+          <div class="venue-detail open" style="display:block">
+            <div class="detail-grid">${fields}</div>
+            ${imgHtml}
+            ${fileLinks}
+          </div>
+        </td>
+      </tr>`;
+    }
+
     function render(filtered) {
       tbody.innerHTML = filtered.map(r => {
-        const vid = r.osm_id || '';
-        const vs  = venueStatus[vid] || {};
-        // scrape cell
-        let scrapeCell = '<td style="color:#333">—</td>';
-        if (vs.error) {
-          scrapeCell = `<td style="color:#e05c5c;font-size:11px;">error</td>`;
-        } else if (vs.file) {
-          const base = `./data/venues/${vid}/`;
-          const updated = vs.changed ? ' <span style="color:#c8a96e;font-size:9px;">↑</span>' : '';
-          scrapeCell = `<td style="font-size:11px;">
-            <a href="${base}${vs.file}" target="_blank" style="color:#7a5f35">HTML</a>
-            · <a href="${base}${vs.txt}" target="_blank" style="color:#7a5f35">TXT</a>${updated}
-          </td>`;
-        }
-        // photos cell
-        let photosCell = '<td style="color:#333">—</td>';
-        if (vs.photos && vs.photos.length) {
-          const count = vs.photos.length;
-          const links = vs.photos.map((p,i) =>
-            `<a href="${p.full_url}" target="_blank" style="color:#7a5f35;font-size:11px;">${p.source === 'Mapillary' ? '📍' : '🖼'} ${i+1}</a>`
-          ).join(' ');
-          photosCell = `<td>
-            <details style="font-size:11px;">
-              <summary style="cursor:pointer;color:#7a5f35;list-style:none;">${count} photo${count>1?'s':''} ▾</summary>
-              <div style="padding-top:4px;display:flex;flex-wrap:wrap;gap:4px;">${links}</div>
-            </details>
-          </td>`;
-        }
-        return `
-          <tr>
-            <td>${r.name || ''}</td>
-            <td>${r.city || ''}</td>
-            <td style="text-transform:capitalize">${r.type || ''}</td>
-            <td>${r.address || ''}</td>
-            <td>${r.website ? `<a href="https://${r.website}" target="_blank">${r.website}</a>` : '—'}</td>
-            <td>${r.phone || '—'}</td>
-            ${scrapeCell}
-            ${photosCell}
-          </tr>`;
+        const name = r.name || '';
+        const st   = getVenueStatus(name);
+        const rowId = name.replace(/[^a-z0-9]/gi,'_');
+        const mainRow = `<tr onclick="toggleDetail('${rowId}')" style="cursor:pointer;">
+          <td><span class="dot ${st.dot}" title="${st.label}"></span></td>
+          <td>${name}</td>
+          <td>${r.city || ''}</td>
+          <td style="text-transform:capitalize">${r.type || ''}</td>
+          <td>${r.website ? `<a href="https://${r.website}" target="_blank" onclick="event.stopPropagation()">${r.website.substring(0,30)}${r.website.length>30?'…':''}</a>` : '—'}</td>
+          <td>${r.phone || '—'}</td>
+        </tr>`;
+        return mainRow;
       }).join('');
     }
     render(venues);
 
     document.getElementById('search').addEventListener('input', e => {
       const term = e.target.value.toLowerCase().trim();
-      const filtered = term ? venues.filter(r => Object.values(r).some(v => (v||'').toString().toLowerCase().includes(term))) : venues;
+      if (!term) { render(venues); return; }
+      const filtered = venues.filter(r => {
+        const basic = Object.values(r).some(v => (v||'').toString().toLowerCase().includes(term));
+        if (basic) return true;
+        // Also search summary data
+        const ss = summariesIndex[r.name] || {};
+        const summaryText = JSON.stringify(ss).toLowerCase();
+        return summaryText.includes(term);
+      });
       render(filtered);
     });
   } catch (err) {
     document.body.innerHTML += '<p style="color:#e05c5c;margin-top:40px;">Error loading venue data.</p>';
+  }
+}
+
+function toggleDetail(rowId) {
+  // Find the row and toggle an inline detail panel
+  const rows = document.querySelectorAll('#venueTable tbody tr');
+  // Simple approach: next sibling if it's a detail row, else fetch and insert
+  // For now just navigate to the summary file
+  // Full expand/collapse would require storing rendered detail per row
+  // We'll use a floating panel approach
+  const name = rowId.replace(/_/g,' '); // approximate
+  const vs = venueStatus[name] || Object.values(venueStatus).find(v => 
+    v.name && v.name.replace(/[^a-z0-9]/gi,'_') === rowId) || {};
+  const safe = vs.safe_dir || rowId;
+  if (vs.has_summary || vs.file) {
+    window.open(`./data/venues/${safe}/summary.json`, '_blank');
   }
 }
 
@@ -649,6 +763,20 @@ async function loadCriticFeed() {
 loadData();
 loadCriticFeed();
 loadLibraryStatus();
+loadAICosts();
+
+// ── AI Cost display ──────────────────────────────────────────────────────────
+async function loadAICosts() {
+  try {
+    const res = await fetch('./data/ai_costs.json');
+    if (!res.ok) return;
+    const d = await res.json();
+    document.getElementById('aiTotal').textContent = `$${(d.cumulative_cost_usd||0).toFixed(4)}`;
+    document.getElementById('aiToday').textContent  = `$${(d.today?.cost_usd||0).toFixed(4)}`;
+    const tok = (d.cumulative_input_tokens||0) + (d.cumulative_output_tokens||0);
+    document.getElementById('aiTokens').textContent = `${tok.toLocaleString()} tokens total`;
+  } catch(e) {}
+}
 
 // ── Library status ───────────────────────────────────────────────────────────
 async function loadLibraryStatus() {
@@ -723,6 +851,87 @@ async function loadLibraryStatus() {
   } catch(e) {
     // Silent — status is enhancement only
   }
+}
+</script>
+
+<!-- ── Chatbot ─────────────────────────────────────────────────────────────── -->
+<div class="chat-wrap">
+  <h2 style="font-family:Georgia,serif;color:#c8a96e;font-weight:normal;margin-bottom:4px;font-size:18px;">Ask Updish</h2>
+  <p style="color:#666;font-size:11px;margin-bottom:16px;">Ask questions about venues, menus, hours, or the Lower Mainland food scene</p>
+  <div class="panel">
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-msg system">Ask me anything about the venues in this database. I have access to AI-generated summaries for venues that have been processed.</div>
+    </div>
+    <div class="chat-input-row">
+      <input type="text" class="chat-input" id="chatInput" placeholder="e.g. Which cafés in North Van mention locally sourced food?" onkeydown="if(event.key==='Enter')sendChat()">
+      <button class="chat-send" id="chatSend" onclick="sendChat()">Send</button>
+    </div>
+    <div class="chat-context-info" id="chatContextInfo"></div>
+  </div>
+</div>
+
+<script>
+let chatHistory = [];
+let summariesForChat = {};
+
+fetch('./data/summaries_index.json').then(r => r.ok ? r.json() : null).then(d => {
+  if (d) {
+    summariesForChat = d.venues || {};
+    const count = Object.keys(summariesForChat).length;
+    document.getElementById('chatContextInfo').textContent =
+      count ? `${count} venue summaries loaded as context` : 'No venue summaries yet — run the scraper first';
+  }
+}).catch(()=>{});
+
+async function sendChat() {
+  const input    = document.getElementById('chatInput');
+  const send     = document.getElementById('chatSend');
+  const msgs     = document.getElementById('chatMessages');
+  const question = input.value.trim();
+  if (!question) return;
+
+  chatHistory.push({role:'user', content: question});
+  msgs.innerHTML += `<div class="chat-msg user">▶ ${question}</div>`;
+  input.value = '';
+  send.disabled = true;
+  msgs.innerHTML += `<div class="chat-msg system" id="chatTyping">Thinking…</div>`;
+  msgs.scrollTop = msgs.scrollHeight;
+
+  const qLower = question.toLowerCase();
+  const relevant = Object.values(summariesForChat).filter(s => {
+    const text = JSON.stringify(s).toLowerCase();
+    return qLower.split(' ').some(w => w.length > 3 && text.includes(w));
+  }).slice(0, 20);
+
+  const context = relevant.length
+    ? `\n\nRELEVANT VENUE DATA:\n${relevant.map(s => JSON.stringify(s)).join('\n')}`
+    : `\n\nVENUE DATABASE: ${Object.keys(summariesForChat).length} venues summarized. No specific matches found.`;
+
+  const systemPrompt = `You are Updish, an AI assistant for the Lower Mainland café and restaurant database covering Vancouver and surrounding areas. Answer helpfully and cite specific venues by name when you have data. Be concise.${context}`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: chatHistory,
+      })
+    });
+    const data  = await response.json();
+    const reply = data.content?.[0]?.text || 'No response received.';
+    chatHistory.push({role:'assistant', content: reply});
+    document.getElementById('chatTyping')?.remove();
+    msgs.innerHTML += `<div class="chat-msg assistant">${reply.replace(/\n/g,'<br>')}</div>`;
+    if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
+  } catch(e) {
+    document.getElementById('chatTyping')?.remove();
+    msgs.innerHTML += `<div class="chat-msg system" style="color:#e05c5c">Error: ${e.message}</div>`;
+  }
+  send.disabled = false;
+  msgs.scrollTop = msgs.scrollHeight;
 }
 </script>
 </body>
