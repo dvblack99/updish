@@ -1002,18 +1002,18 @@ Only include keys you actually need.`;
 async function gatherContext(plan, question) {
   const parts = [];
 
-  // Venue list (filtered or full sample)
+  // Always include full list of summarized venues and total count
+  const allSummarized = Object.keys(summaryIndex);
+  parts.push(`SUMMARIZED VENUES (${allSummarized.length} total): ${allSummarized.join(', ')}`);
+  parts.push(`TOTAL VENUES IN DATABASE: ${venueIndex.length} across ${[...new Set(venueIndex.map(v=>v.city))].length} cities`);
+
+  // Filtered venue list if requested
   if (plan.needs_venue_list || plan.venue_list_query) {
     const q = (plan.venue_list_query || '').toLowerCase();
     const filtered = q
       ? venueIndex.filter(v => (v.city+' '+v.type+' '+v.name).toLowerCase().includes(q))
       : venueIndex.slice(0, 500);
     parts.push(`VENUE LIST (${filtered.length} matching):\n${filtered.map(v=>`${v.name} — ${v.city} (${v.type})`).join('\n')}`);
-  }
-
-  // Full venue name list always available for counting/listing
-  if (!plan.needs_venue_list && !plan.venue_list_query) {
-    parts.push(`TOTAL VENUES IN DATABASE: ${venueIndex.length} across ${[...new Set(venueIndex.map(v=>v.city))].length} cities`);
   }
 
   // Venue summaries
