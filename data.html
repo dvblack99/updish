@@ -967,28 +967,27 @@ async function callClaude(system, messages, maxTokens=1000) {
 async function route(question) {
   // Build compact index for router
   const venueList = venueIndex.slice(0,200).map(v=>`${v.name}|${v.city}`).join(';');
-  const summaryNames = Object.values(summaryIndex).map(s=>s.name).join(', ');
+  const summaryNames = Object.keys(summaryIndex).join(', ');
   const libTitles = libraryIndex.map(l=>`${l.id}:${l.title}`).join('; ');
   const criticTitles = criticIndex.slice(0,30).map(a=>`${a.i}:${a.source}:${a.title}`).join('\n');
 
-  const routerSystem = `You are a data router. Given a question and an index of available data, return ONLY a JSON object specifying what to fetch. Be minimal — only fetch what's genuinely needed.
+  const routerSystem = `You are a data router. Given a question and an index of available data, return ONLY a JSON object specifying what to fetch.
 
-Available data:
-VENUES (${venueIndex.length} total, sample): ${venueList}
-SUMMARIZED VENUES: ${summaryNames || 'none yet'}
+VENUES WITH FULL SUMMARIES (use exact names): ${summaryNames}
+TOTAL VENUE DATABASE: ${venueIndex.length} venues (sample): ${venueList}
 LIBRARY DOCS: ${libTitles}
 CRITIC ARTICLES (sample): ${criticTitles}
 
 Return JSON like:
 {
-  "venue_names": ["exact venue name to get summary for"],
-  "venue_txt": ["exact venue name to get full scraped text"],
-  "library_ids": ["doc_id to get full text"],
+  "venue_names": ["exact venue name from VENUES WITH FULL SUMMARIES list"],
+  "venue_txt": ["venue name for full scraped text"],
+  "library_ids": ["doc_id"],
   "critic_indices": [0, 1, 2],
-  "venue_list_query": "city or type filter if listing venues e.g. 'North Vancouver cafe'",
+  "venue_list_query": "city or type filter if listing venues",
   "needs_venue_list": false
 }
-Only include keys you actually need. Empty arrays/false for everything else.`;
+Only include keys you actually need.`;
 
   try {
     const raw = await callClaude(routerSystem, [{role:'user', content: question}], 300);
@@ -1019,7 +1018,8 @@ async function gatherContext(plan, question) {
 
   // Venue summaries
   for (const name of (plan.venue_names || []).slice(0, 5)) {
-    const entry = Object.values(summaryIndex).find(s => s.name?.toLowerCase() === name.toLowerCase());
+    const entry = summaryIndex[name] ||
+      Object.entries(summaryIndex).find(([k]) => k.toLowerCase() === name.toLowerCase())?.[1];
     if (entry) {
       parts.push(`VENUE SUMMARY — ${name}:\n${JSON.stringify(entry, null, 2)}`);
     }
