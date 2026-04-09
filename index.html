@@ -5,7 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>UpDish — Vancouver Food Scene Map</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script src="data.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -94,6 +97,11 @@
   .leaflet-control-attribution a { color: #888 !important; }
   .leaflet-control-zoom a { background: var(--surface) !important; color: var(--text) !important; border-color: var(--border2) !important; }
   .leaflet-control-zoom a:hover { background: var(--surface2) !important; }
+
+  /* cluster styling */
+  .marker-cluster { background: rgba(14,14,14,0.75); }
+  .marker-cluster div { background: rgba(200,245,82,0.85); color: #000; font-family: var(--ff-mono); font-size: 12px; font-weight: 600; }
+  .marker-cluster-small div, .marker-cluster-medium div, .marker-cluster-large div { background: rgba(200,245,82,0.85); }
   .leaflet-popup-content-wrapper { background: var(--surface) !important; color: var(--text) !important; border: 1px solid var(--border2) !important; border-radius: 12px !important; box-shadow: 0 8px 32px rgba(0,0,0,0.6) !important; padding: 0 !important; }
   .leaflet-popup-content { margin: 0 !important; width: auto !important; }
   .leaflet-popup-tip { background: var(--surface) !important; }
@@ -206,7 +214,13 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
   maxZoom: 19,
 }).addTo(map);
-const markerLayer = L.layerGroup().addTo(map);
+const markerLayer = L.markerClusterGroup({
+  chunkedLoading: true,
+  maxClusterRadius: 50,
+  spiderfyOnMaxZoom: true,
+  showCoverageOnHover: false,
+  zoomToBoundsOnClick: true,
+}).addTo(map);
 
 function makeIcon(type) {
   const color = TYPE_COLORS[type] || '#888';
@@ -248,13 +262,14 @@ function rebuildMarkers() {
   const counts = Object.fromEntries(ALL_TYPES.map(t => [t, 0]));
   BUSINESSES.forEach(b => { if (b.type in counts) counts[b.type]++; });
   ALL_TYPES.forEach(t => { const el = document.getElementById('c-' + t); if (el) el.textContent = counts[t]; });
+  const markers = [];
   BUSINESSES.forEach(b => {
     if (!filterBusiness(b)) return;
     visible++;
-    L.marker([b.lat, b.lng], { icon: makeIcon(b.type) })
-      .bindPopup(makePopupHTML(b), { maxWidth: 260 })
-      .addTo(markerLayer);
+    markers.push(L.marker([b.lat, b.lng], { icon: makeIcon(b.type) })
+      .bindPopup(makePopupHTML(b), { maxWidth: 260 }));
   });
+  markerLayer.addLayers(markers);
   document.getElementById('count-num').textContent = visible;
 }
 
