@@ -1,0 +1,21 @@
+services:
+  updish-api:
+    build: .
+    container_name: updish-api
+    restart: unless-stopped
+    ports:
+      - "5055:5055"
+    volumes:
+      - /root/mysite/html/updish/updish.db:/data/updish.db:ro
+    environment:
+      - DB_PATH=/data/updish.db
+      - PROXY_URL=http://host.docker.internal:8181/v1/chat/completions
+      - UPDISH_TOKEN=updish
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.updish-api.rule=Host(`davidjamesblack.com`) && PathPrefix(`/updish/api`)"
+      - "traefik.http.routers.updish-api.entrypoints=websecure"
+      - "traefik.http.routers.updish-api.tls.certresolver=letsencrypt"
+      - "traefik.http.services.updish-api.loadbalancer.server.port=5055"

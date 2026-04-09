@@ -49,7 +49,7 @@ def main():
 
     # Pull all active businesses with coordinates
     rows = conn.execute("""
-        SELECT name, address, neighbourhood, type, licence_type,
+        SELECT id, name, address, neighbourhood, type, licence_type,
                employees, lat, lng, website, website_status,
                html_fetched_at, licence_status
         FROM businesses
@@ -61,6 +61,7 @@ def main():
     businesses = []
     for r in rows:
         b = {
+            "db_id": r["id"],
             "name": r["name"],
             "address": r["address"] or "",
             "neighbourhood": r["neighbourhood"] or "Vancouver",
