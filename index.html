@@ -21,29 +21,23 @@
     --hint:       #4f4e4b;
     --accent:     #c8f552;
     --accent-dim: rgba(200,245,82,0.12);
-    --cafe:       #c8f552;
-    --restaurant: #52c8f5;
-    --bar:        #f5a352;
-    --truck:      #f552b2;
-    --inactive:   #3a3a3a;
-    --topbar-h:   52px;
-    --sidebar-w:  230px;
-    --ff-head:    'DM Serif Display', Georgia, serif;
-    --ff-body:    'DM Sans', system-ui, sans-serif;
-    --ff-mono:    'DM Mono', monospace;
+    --c-restaurant:        #52c8f5;
+    --c-restaurant-liquor: #f5a352;
+    --c-bar:               #f552b2;
+    --c-street-vendor:     #f5e652;
+    --c-caterer:           #a0a09a;
+    --c-inactive:          #3a3a3a;
+    --ff-head: 'DM Serif Display', Georgia, serif;
+    --ff-body: 'DM Sans', system-ui, sans-serif;
+    --ff-mono: 'DM Mono', monospace;
   }
 
   html, body { height: 100%; margin: 0; overflow: hidden; font-family: var(--ff-body); background: var(--bg); color: var(--text); }
 
-  /* topbar */
   #topbar {
-    position: fixed; top: 0; left: 0; right: 0;
-    height: var(--topbar-h);
-    display: flex; align-items: center; gap: 14px;
-    padding: 0 16px;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    z-index: 900;
+    position: fixed; top: 0; left: 0; right: 0; height: 52px;
+    display: flex; align-items: center; gap: 14px; padding: 0 16px;
+    background: var(--surface); border-bottom: 1px solid var(--border); z-index: 900;
   }
   #logo { font-family: var(--ff-head); font-size: 22px; letter-spacing: -0.5px; color: var(--text); white-space: nowrap; flex-shrink: 0; }
   #logo span { color: var(--accent); }
@@ -56,27 +50,17 @@
   #count-pill strong { color: var(--accent); }
   #menu-btn { display: none; flex-shrink: 0; background: none; border: 1px solid var(--border2); border-radius: 6px; padding: 7px 9px; cursor: pointer; color: var(--text); line-height: 1; }
 
-  /* sidebar */
   #sidebar {
-    position: fixed; top: 52px; left: 0; bottom: 0;
-    width: 230px;
+    position: fixed; top: 52px; left: 0; bottom: 0; width: 230px;
     background: var(--surface); border-right: 1px solid var(--border);
-    display: flex; flex-direction: column;
-    overflow-y: auto; z-index: 800;
+    display: flex; flex-direction: column; overflow-y: auto; z-index: 800;
     transition: transform 0.25s ease;
   }
   #sidebar::-webkit-scrollbar { width: 4px; }
   #sidebar::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
 
-  /* map — fills the remaining area using fixed positioning */
-  #map {
-    position: fixed;
-    top: 52px; left: 230px;
-    right: 0; bottom: 0;
-    height: auto; width: auto;
-  }
+  #map { position: fixed; top: 52px; left: 230px; right: 0; bottom: 0; height: auto; width: auto; }
 
-  /* sidebar contents */
   .sb-section { padding: 14px 16px; border-bottom: 1px solid var(--border); }
   .sb-label { font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--hint); margin-bottom: 10px; }
   .filter-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; cursor: pointer; user-select: none; }
@@ -86,21 +70,24 @@
   .filter-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
   .filter-label-text { font-size: 13px; color: var(--text); flex: 1; }
   .filter-count { font-size: 11px; font-family: var(--ff-mono); color: var(--hint); }
+
   .hood-pills { display: flex; flex-wrap: wrap; gap: 5px; }
   .hood-pill { font-size: 11px; padding: 4px 9px; border-radius: 100px; border: 1px solid var(--border2); cursor: pointer; color: var(--muted); transition: all 0.15s; user-select: none; }
   .hood-pill.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 500; }
+
   .toggle-row { display: flex; gap: 6px; }
   .toggle-btn { flex: 1; font-size: 11px; padding: 6px 8px; border: 1px solid var(--border2); border-radius: 6px; background: transparent; color: var(--muted); cursor: pointer; transition: all 0.15s; }
   .toggle-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
   #reset-btn { margin: 12px 16px; padding: 9px; width: calc(100% - 32px); background: none; border: 1px solid var(--border2); border-radius: 8px; color: var(--muted); font-size: 12px; cursor: pointer; letter-spacing: 0.3px; transition: all 0.15s; font-family: var(--ff-body); }
   #reset-btn:hover { border-color: var(--accent); color: var(--accent); }
+
   .bench-cards { display: flex; flex-direction: column; gap: 8px; }
   .bench-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 11px; }
   .bench-stat { font-family: var(--ff-head); font-size: 22px; color: var(--accent); line-height: 1; }
   .bench-desc { font-size: 11px; color: var(--text); margin-top: 3px; line-height: 1.4; }
   .bench-src { font-size: 10px; color: var(--hint); margin-top: 4px; }
 
-  /* leaflet */
   .leaflet-container { background: #1a1f1a; font-family: var(--ff-body); }
   .leaflet-tile { filter: brightness(0.55) saturate(0.7) hue-rotate(5deg); }
   .leaflet-control-attribution { background: rgba(0,0,0,0.5) !important; color: #666 !important; font-size: 9px !important; }
@@ -112,7 +99,6 @@
   .leaflet-popup-tip { background: var(--surface) !important; }
   .leaflet-popup-close-button { color: var(--muted) !important; top: 10px !important; right: 12px !important; font-size: 18px !important; }
 
-  /* popup */
   .popup-inner { padding: 16px 18px 14px; min-width: 200px; }
   .popup-type-badge { display: inline-block; font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase; font-weight: 600; padding: 3px 7px; border-radius: 100px; margin-bottom: 8px; }
   .popup-name { font-family: var(--ff-head); font-size: 16px; color: var(--text); margin-bottom: 10px; line-height: 1.3; }
@@ -120,18 +106,15 @@
   .popup-table td { font-size: 12px; padding: 3px 0; vertical-align: top; }
   .popup-table td:first-child { color: var(--muted); padding-right: 12px; white-space: nowrap; }
   .popup-table td:last-child { color: var(--text); }
-  .popup-status { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 100px; margin-top: 10px; }
-  .status-active { background: rgba(200,245,82,0.15); color: var(--accent); border: 1px solid rgba(200,245,82,0.3); }
-  .status-inactive { background: rgba(255,255,255,0.06); color: var(--muted); border: 1px solid var(--border); }
+  .popup-status { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 100px; margin-top: 10px; background: rgba(200,245,82,0.15); color: var(--accent); border: 1px solid rgba(200,245,82,0.3); }
 
-  /* legend */
-  #legend { position: fixed; bottom: 18px; left: 246px; display: flex; gap: 12px; align-items: center; background: rgba(14,14,14,0.85); border: 1px solid var(--border2); border-radius: 100px; padding: 7px 14px; z-index: 500; }
+  #legend { position: fixed; bottom: 18px; left: 246px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; background: rgba(14,14,14,0.85); border: 1px solid var(--border2); border-radius: 100px; padding: 7px 14px; z-index: 500; }
   .leg-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); }
   .leg-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
-  /* mobile */
   #overlay { display: none; position: fixed; top: 52px; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 799; }
   #overlay.visible { display: block; }
+
   @media (max-width: 680px) {
     #menu-btn { display: block; }
     #count-pill { display: none; }
@@ -153,29 +136,23 @@
     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M10.5 10.5l3.5 3.5"/></svg>
     <input id="search-input" type="text" placeholder="Search neighbourhood, address, or business…" autocomplete="off" />
   </div>
-  <div id="count-pill"><strong id="count-num">80</strong> businesses</div>
+  <div id="count-pill"><strong id="count-num">–</strong> businesses</div>
 </div>
 
 <div id="sidebar">
   <div class="sb-section">
     <div class="sb-label">Business type</div>
-    <label class="filter-row"><input type="checkbox" id="f-cafe" checked /><div class="filter-dot" style="background:var(--cafe)"></div><span class="filter-label-text">Café / coffee</span><span class="filter-count" id="c-cafe">–</span></label>
-    <label class="filter-row"><input type="checkbox" id="f-restaurant" checked /><div class="filter-dot" style="background:var(--restaurant)"></div><span class="filter-label-text">Restaurant</span><span class="filter-count" id="c-restaurant">–</span></label>
-    <label class="filter-row"><input type="checkbox" id="f-bar" checked /><div class="filter-dot" style="background:var(--bar)"></div><span class="filter-label-text">Bar / lounge</span><span class="filter-count" id="c-bar">–</span></label>
-    <label class="filter-row"><input type="checkbox" id="f-food_truck" checked /><div class="filter-dot" style="background:var(--truck)"></div><span class="filter-label-text">Food truck</span><span class="filter-count" id="c-food_truck">–</span></label>
+    <label class="filter-row"><input type="checkbox" id="f-restaurant" checked /><div class="filter-dot" style="background:var(--c-restaurant)"></div><span class="filter-label-text">Restaurant</span><span class="filter-count" id="c-restaurant">–</span></label>
+    <label class="filter-row"><input type="checkbox" id="f-restaurant_liquor" checked /><div class="filter-dot" style="background:var(--c-restaurant-liquor)"></div><span class="filter-label-text">Restaurant + liquor</span><span class="filter-count" id="c-restaurant_liquor">–</span></label>
+    <label class="filter-row"><input type="checkbox" id="f-bar" checked /><div class="filter-dot" style="background:var(--c-bar)"></div><span class="filter-label-text">Bar / lounge</span><span class="filter-count" id="c-bar">–</span></label>
+    <label class="filter-row"><input type="checkbox" id="f-street_vendor" checked /><div class="filter-dot" style="background:var(--c-street-vendor)"></div><span class="filter-label-text">Street vendor</span><span class="filter-count" id="c-street_vendor">–</span></label>
+    <label class="filter-row"><input type="checkbox" id="f-caterer" checked /><div class="filter-dot" style="background:var(--c-caterer)"></div><span class="filter-label-text">Caterer</span><span class="filter-count" id="c-caterer">–</span></label>
   </div>
   <div class="sb-section">
     <div class="sb-label">Business size</div>
     <label class="filter-row"><input type="checkbox" id="f-small" checked /><span class="filter-label-text">Small (&lt;10 staff)</span></label>
     <label class="filter-row"><input type="checkbox" id="f-medium" checked /><span class="filter-label-text">Medium (10–35)</span></label>
     <label class="filter-row"><input type="checkbox" id="f-large" checked /><span class="filter-label-text">Large (35+)</span></label>
-  </div>
-  <div class="sb-section">
-    <div class="sb-label">Licence status</div>
-    <div class="toggle-row">
-      <button class="toggle-btn active" id="s-active" data-status="active">Active</button>
-      <button class="toggle-btn active" id="s-inactive" data-status="inactive">Inactive</button>
-    </div>
   </div>
   <div class="sb-section">
     <div class="sb-label">Neighbourhood</div>
@@ -191,116 +168,151 @@
 <div id="map"></div>
 
 <div id="legend">
-  <div class="leg-item"><div class="leg-dot" style="background:var(--cafe)"></div>Café</div>
-  <div class="leg-item"><div class="leg-dot" style="background:var(--restaurant)"></div>Restaurant</div>
-  <div class="leg-item"><div class="leg-dot" style="background:var(--bar)"></div>Bar</div>
-  <div class="leg-item"><div class="leg-dot" style="background:var(--truck)"></div>Food truck</div>
-  <div class="leg-item"><div class="leg-dot" style="background:var(--inactive);opacity:0.5"></div>Inactive</div>
+  <div class="leg-item"><div class="leg-dot" style="background:var(--c-restaurant)"></div>Restaurant</div>
+  <div class="leg-item"><div class="leg-dot" style="background:var(--c-restaurant-liquor)"></div>Restaurant + liquor</div>
+  <div class="leg-item"><div class="leg-dot" style="background:var(--c-bar)"></div>Bar</div>
+  <div class="leg-item"><div class="leg-dot" style="background:var(--c-street-vendor)"></div>Street vendor</div>
+  <div class="leg-item"><div class="leg-dot" style="background:var(--c-caterer)"></div>Caterer</div>
 </div>
 
 <div id="overlay"></div>
 
 <script>
+const TYPE_COLORS = {
+  restaurant:        '#52c8f5',
+  restaurant_liquor: '#f5a352',
+  bar:               '#f552b2',
+  street_vendor:     '#f5e652',
+  caterer:           '#a0a09a',
+};
+const TYPE_LABELS = {
+  restaurant:        'Restaurant',
+  restaurant_liquor: 'Restaurant + liquor',
+  bar:               'Bar / lounge',
+  street_vendor:     'Street vendor',
+  caterer:           'Caterer',
+};
+const ALL_TYPES = Object.keys(TYPE_COLORS);
+
 const state = {
   search: '',
-  types: { cafe:true, restaurant:true, bar:true, food_truck:true },
-  sizes: { small:true, medium:true, large:true },
-  statuses: { active:true, inactive:true },
+  types: Object.fromEntries(ALL_TYPES.map(t => [t, true])),
+  sizes: { small: true, medium: true, large: true },
   hoods: new Set(),
 };
-const TYPE_COLORS = { cafe:'#c8f552', restaurant:'#52c8f5', bar:'#f5a352', food_truck:'#f552b2' };
-const TYPE_LABELS = { cafe:'Café', restaurant:'Restaurant', bar:'Bar', food_truck:'Food truck' };
 
-const map = L.map('map', { center:[49.262,-123.120], zoom:13 });
+const map = L.map('map', { center: [49.262, -123.120], zoom: 13 });
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-  maxZoom:19
+  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  maxZoom: 19,
 }).addTo(map);
 const markerLayer = L.layerGroup().addTo(map);
 
-function makeIcon(type, status) {
-  const color = status==='inactive' ? '#3a3a3a' : (TYPE_COLORS[type]||'#888');
-  const ring = status==='inactive' ? 'rgba(255,255,255,0.1)' : color+'40';
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="${ring}"/><circle cx="10" cy="10" r="5" fill="${color}" opacity="${status==='inactive'?0.4:0.92}"/></svg>`;
-  return L.divIcon({ html:svg, className:'', iconSize:[20,20], iconAnchor:[10,10], popupAnchor:[0,-12] });
+function makeIcon(type) {
+  const color = TYPE_COLORS[type] || '#888';
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="${color}40"/><circle cx="10" cy="10" r="5" fill="${color}" opacity="0.92"/></svg>`;
+  return L.divIcon({ html: svg, className: '', iconSize: [20,20], iconAnchor: [10,10], popupAnchor: [0,-12] });
 }
 
 function makePopupHTML(b) {
-  const color = b.status==='inactive' ? '#4a4a4a' : (TYPE_COLORS[b.type]||'#888');
-  const bg = b.status==='inactive' ? 'rgba(255,255,255,0.05)' : color+'20';
-  return `<div class="popup-inner"><span class="popup-type-badge" style="background:${bg};color:${color}">${TYPE_LABELS[b.type]||b.type}</span><div class="popup-name">${b.name}</div><table class="popup-table"><tr><td>Address</td><td>${b.address}</td></tr><tr><td>Neighbourhood</td><td>${b.neighbourhood}</td></tr><tr><td>Employees</td><td>${b.employees}</td></tr><tr><td>Licence</td><td>${b.licence}</td></tr></table><span class="popup-status status-${b.status}">${b.status==='active'?'Active':'Inactive'}</span></div>`;
+  const color = TYPE_COLORS[b.type] || '#888';
+  return `<div class="popup-inner">
+    <span class="popup-type-badge" style="background:${color}20;color:${color}">${TYPE_LABELS[b.type] || b.type}</span>
+    <div class="popup-name">${b.name}</div>
+    <table class="popup-table">
+      <tr><td>Address</td><td>${b.address}</td></tr>
+      <tr><td>Neighbourhood</td><td>${b.neighbourhood}</td></tr>
+      <tr><td>Employees</td><td>${b.employees || 'unknown'}</td></tr>
+      <tr><td>Licence</td><td>${b.licence}</td></tr>
+    </table>
+    <span class="popup-status">Active</span>
+  </div>`;
 }
 
-function getSize(e) { return e<10?'small':e<=35?'medium':'large'; }
+function getSize(e) { return e < 10 ? 'small' : e <= 35 ? 'medium' : 'large'; }
 
 function filterBusiness(b) {
   if (!state.types[b.type]) return false;
   if (!state.sizes[getSize(b.employees)]) return false;
-  if (!state.statuses[b.status]) return false;
-  if (state.hoods.size>0 && !state.hoods.has(b.neighbourhood)) return false;
+  if (state.hoods.size > 0 && !state.hoods.has(b.neighbourhood)) return false;
   if (state.search) {
-    const q=state.search.toLowerCase();
-    if (!b.name.toLowerCase().includes(q)&&!b.address.toLowerCase().includes(q)&&!b.neighbourhood.toLowerCase().includes(q)) return false;
+    const q = state.search.toLowerCase();
+    if (!b.name.toLowerCase().includes(q) && !b.address.toLowerCase().includes(q) && !b.neighbourhood.toLowerCase().includes(q)) return false;
   }
   return true;
 }
 
 function rebuildMarkers() {
   markerLayer.clearLayers();
-  let visible=0;
-  const counts={cafe:0,restaurant:0,bar:0,food_truck:0};
-  BUSINESSES.forEach(b=>{ if(state.types[b.type]) counts[b.type]++; });
-  Object.keys(counts).forEach(t=>{ const el=document.getElementById('c-'+t); if(el) el.textContent=counts[t]; });
-  BUSINESSES.forEach(b=>{
-    if(!filterBusiness(b)) return;
+  let visible = 0;
+  const counts = Object.fromEntries(ALL_TYPES.map(t => [t, 0]));
+  BUSINESSES.forEach(b => { if (b.type in counts) counts[b.type]++; });
+  ALL_TYPES.forEach(t => { const el = document.getElementById('c-' + t); if (el) el.textContent = counts[t]; });
+  BUSINESSES.forEach(b => {
+    if (!filterBusiness(b)) return;
     visible++;
-    L.marker([b.lat,b.lng],{icon:makeIcon(b.type,b.status)}).bindPopup(makePopupHTML(b),{maxWidth:260}).addTo(markerLayer);
+    L.marker([b.lat, b.lng], { icon: makeIcon(b.type) })
+      .bindPopup(makePopupHTML(b), { maxWidth: 260 })
+      .addTo(markerLayer);
   });
-  document.getElementById('count-num').textContent=visible;
+  document.getElementById('count-num').textContent = visible;
 }
 
 function buildHoodPills() {
-  const hoods=[...new Set(BUSINESSES.map(b=>b.neighbourhood))].sort();
-  const wrap=document.getElementById('hood-pills');
-  hoods.forEach(h=>{
-    const pill=document.createElement('div');
-    pill.className='hood-pill'; pill.textContent=h;
-    pill.addEventListener('click',()=>{ state.hoods.has(h)?state.hoods.delete(h):state.hoods.add(h); pill.classList.toggle('active',state.hoods.has(h)); rebuildMarkers(); });
+  const hoods = [...new Set(BUSINESSES.map(b => b.neighbourhood))].sort();
+  const wrap = document.getElementById('hood-pills');
+  hoods.forEach(h => {
+    const pill = document.createElement('div');
+    pill.className = 'hood-pill'; pill.textContent = h;
+    pill.addEventListener('click', () => {
+      state.hoods.has(h) ? state.hoods.delete(h) : state.hoods.add(h);
+      pill.classList.toggle('active', state.hoods.has(h));
+      rebuildMarkers();
+    });
     wrap.appendChild(pill);
   });
 }
 
 function buildBenchmarks() {
-  const wrap=document.getElementById('bench-cards');
-  BENCHMARKS.forEach(b=>{ wrap.innerHTML+=`<div class="bench-card"><div class="bench-stat">${b.stat}</div><div class="bench-desc">${b.desc}</div><div class="bench-src">${b.source}</div></div>`; });
+  const wrap = document.getElementById('bench-cards');
+  BENCHMARKS.forEach(b => {
+    wrap.innerHTML += `<div class="bench-card"><div class="bench-stat">${b.stat}</div><div class="bench-desc">${b.desc}</div><div class="bench-src">${b.source}</div></div>`;
+  });
 }
 
-['cafe','restaurant','bar','food_truck'].forEach(t=>{ document.getElementById('f-'+t).addEventListener('change',e=>{ state.types[t]=e.target.checked; rebuildMarkers(); }); });
-['small','medium','large'].forEach(s=>{ document.getElementById('f-'+s).addEventListener('change',e=>{ state.sizes[s]=e.target.checked; rebuildMarkers(); }); });
-document.querySelectorAll('.toggle-btn').forEach(btn=>{ btn.addEventListener('click',()=>{ const st=btn.dataset.status; state.statuses[st]=!state.statuses[st]; btn.classList.toggle('active',state.statuses[st]); rebuildMarkers(); }); });
-
-let searchTimer;
-document.getElementById('search-input').addEventListener('input',e=>{ clearTimeout(searchTimer); searchTimer=setTimeout(()=>{ state.search=e.target.value.trim(); rebuildMarkers(); },220); });
-
-document.getElementById('reset-btn').addEventListener('click',()=>{
-  state.search=''; state.hoods.clear();
-  state.types={cafe:true,restaurant:true,bar:true,food_truck:true};
-  state.sizes={small:true,medium:true,large:true};
-  state.statuses={active:true,inactive:true};
-  document.getElementById('search-input').value='';
-  ['cafe','restaurant','bar','food_truck'].forEach(t=>document.getElementById('f-'+t).checked=true);
-  ['small','medium','large'].forEach(s=>document.getElementById('f-'+s).checked=true);
-  document.querySelectorAll('.toggle-btn').forEach(b=>b.classList.add('active'));
-  document.querySelectorAll('.hood-pill').forEach(p=>p.classList.remove('active'));
-  map.setView([49.262,-123.120],13); rebuildMarkers();
+ALL_TYPES.forEach(t => {
+  document.getElementById('f-' + t).addEventListener('change', e => { state.types[t] = e.target.checked; rebuildMarkers(); });
+});
+['small','medium','large'].forEach(s => {
+  document.getElementById('f-' + s).addEventListener('change', e => { state.sizes[s] = e.target.checked; rebuildMarkers(); });
 });
 
-const sidebar=document.getElementById('sidebar');
-const overlay=document.getElementById('overlay');
-document.getElementById('menu-btn').addEventListener('click',()=>{ sidebar.classList.toggle('open'); overlay.classList.toggle('visible'); });
-overlay.addEventListener('click',()=>{ sidebar.classList.remove('open'); overlay.classList.remove('visible'); });
+let searchTimer;
+document.getElementById('search-input').addEventListener('input', e => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => { state.search = e.target.value.trim(); rebuildMarkers(); }, 220);
+});
 
-buildHoodPills(); buildBenchmarks(); rebuildMarkers();
+document.getElementById('reset-btn').addEventListener('click', () => {
+  state.search = ''; state.hoods.clear();
+  state.types = Object.fromEntries(ALL_TYPES.map(t => [t, true]));
+  state.sizes = { small: true, medium: true, large: true };
+  document.getElementById('search-input').value = '';
+  ALL_TYPES.forEach(t => document.getElementById('f-' + t).checked = true);
+  ['small','medium','large'].forEach(s => document.getElementById('f-' + s).checked = true);
+  document.querySelectorAll('.hood-pill').forEach(p => p.classList.remove('active'));
+  map.setView([49.262, -123.120], 13);
+  rebuildMarkers();
+});
+
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('overlay');
+document.getElementById('menu-btn').addEventListener('click', () => { sidebar.classList.toggle('open'); overlay.classList.toggle('visible'); });
+overlay.addEventListener('click', () => { sidebar.classList.remove('open'); overlay.classList.remove('visible'); });
+
+buildHoodPills();
+buildBenchmarks();
+rebuildMarkers();
 </script>
 </body>
 </html>

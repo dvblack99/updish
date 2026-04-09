@@ -5,37 +5,24 @@ Pulls food/beverage business licences from City of Vancouver Open Data
 and writes data.js for the map.
 
 Run: python3 fetch_data.py
-Output: data.js (drop this in /root/mysite/html/updish/)
+Output: data.js
 """
 
 import urllib.request
+import urllib.parse
 import json
 import time
 import os
 
 API_BASE = "https://opendata.vancouver.ca/api/explore/v2.1/catalog/datasets/business-licences/records"
 
-# Business types to include
+# CoV business types to fetch
 FOOD_TYPES = [
     "Restaurant",
-    "Cafeteria",
-    "Coffee Bar/Tea House",
-    "Pub",
-    "Tavern/Lounge",
-    "Catering",
-    "Food Processor - Retail",
+    "Liquor Establishment",
+    "Street Vendor",
+    "Caterer",
 ]
-
-# Map CoV types to our display types
-TYPE_MAP = {
-    "Restaurant": "restaurant",
-    "Cafeteria": "restaurant",
-    "Coffee Bar/Tea House": "cafe",
-    "Pub": "bar",
-    "Tavern/Lounge": "bar",
-    "Catering": "food_truck",
-    "Food Processor - Retail": "cafe",
-}
 
 BENCHMARKS = [
     {"stat": "31–34%", "desc": "avg food cost ratio for BC independents", "source": "Restaurants Canada 2026"},
@@ -45,6 +32,28 @@ BENCHMARKS = [
     {"stat": "~8%", "desc": "net margin for healthy independent café", "source": "Restaurants Canada"},
     {"stat": "28–32%", "desc": "target labour cost as % of revenue", "source": "TouchBistro 2025"},
 ]
+
+LIQUOR_SUBTYPES = {"Class 1 with liquor service", "Class 2 with liquor service"}
+
+
+def classify(businesstype, businesssubtype):
+    """Return (type_key, licence_label) for a record."""
+    bt = (businesstype or "").strip()
+    bs = (businesssubtype or "").strip()
+
+    if bt == "Restaurant":
+        if bs in LIQUOR_SUBTYPES:
+            return "restaurant_liquor", "Food Primary + Liquor"
+        else:
+            return "restaurant", "Food Primary"
+    elif bt == "Liquor Establishment":
+        return "bar", "Liquor Primary"
+    elif bt == "Street Vendor":
+        return "street_vendor", "Street Vendor"
+    elif bt == "Caterer":
+        return "caterer", "Caterer"
+    else:
+        return "restaurant", "Food Primary"
 
 
 def build_where_clause():
@@ -59,8 +68,8 @@ def fetch_page(offset, limit=100):
         f"where={urllib.parse.quote(where)}"
         f"&limit={limit}"
         f"&offset={offset}"
-        f"&fields=businessname,businesstradename,businesstype,status,numberofemployees,"
-        f"house,street,localarea,postalcode,geo_point_2d"
+        f"&fields=businessname,businesstradename,businesstype,businesssubtype,status,"
+        f"numberofemployees,house,street,localarea,postalcode,geo_point_2d"
     )
     url = f"{API_BASE}?{params}"
     req = urllib.request.Request(url, headers={"User-Agent": "UpDish/1.0"})
@@ -69,8 +78,6 @@ def fetch_page(offset, limit=100):
 
 
 def main():
-    import urllib.parse  # needed inside fetch_page
-
     print("Fetching City of Vancouver business licences...")
     businesses = []
     offset = 0
@@ -94,51 +101,47 @@ def main():
         for r in results:
             geo = r.get("geo_point_2d")
             if not geo:
-                continue  # skip if no coordinates
-
+                continue
             lat = geo.get("lat")
             lon = geo.get("lon")
             if not lat or not lon:
                 continue
 
             name = r.get("businesstradename") or r.get("businessname") or "Unknown"
-            btype = r.get("businesstype", "")
             address = " ".join(filter(None, [r.get("house", ""), r.get("street", "")])).strip()
             neighbourhood = r.get("localarea") or "Vancouver"
             employees = r.get("numberofemployees")
             employees = int(employees) if employees else 0
-            status = "active" if r.get("status") == "Issued" else "inactive"
-            display_type = TYPE_MAP.get(btype, "restaurant")
+            btype = r.get("businesstype", "")
+            bsubtype = r.get("businesssubtype", "")
 
-            # Determine licence label
-            if btype in ("Pub", "Tavern/Lounge"):
-                licence = "Liquor Primary"
-            else:
-                licence = "Food Primary"
+            type_key, licence_label = classify(btype, bsubtype)
 
             businesses.append({
                 "name": name,
                 "address": address,
                 "neighbourhood": neighbourhood,
-                "type": display_type,
+                "type": type_key,
                 "employees": employees,
-                "licence": licence,
-                "status": status,
-                "lat": lat,
-                "lng": lon,
+                "licence": licence_label,
+                "status": "active",
             })
 
         offset += limit
         if offset >= total:
             break
-
-        time.sleep(0.2)  # be polite to the API
+        time.sleep(0.2)
 
     print(f"\nFetched {len(businesses)} businesses with coordinates.")
 
+    # Type breakdown
+    counts = {}
+    for b in businesses:
+        counts[b["type"]] = counts.get(b["type"], 0) + 1
+    print("Breakdown:", json.dumps(counts, indent=2))
+
     # Write data.js
     output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data.js")
-
     with open(output_path, "w", encoding="utf-8") as f:
         f.write("// UpDish — live data\n")
         f.write("// Source: City of Vancouver Open Data, business-licences dataset\n")
@@ -152,9 +155,7 @@ def main():
         f.write(";\n")
 
     print(f"Written to {output_path}")
-    print("Done. Copy data.js to /root/mysite/html/updish/ if not already there.")
 
 
 if __name__ == "__main__":
-    import urllib.parse
     main()
