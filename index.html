@@ -209,14 +209,15 @@ const state = {
   hoods: new Set(),
 };
 
-const map = L.map('map', { center: [49.262, -123.120], zoom: 13 });
+const map = L.map('map', { center: [49.262, -123.120], zoom: 12 });
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
   maxZoom: 19,
 }).addTo(map);
 const markerLayer = L.markerClusterGroup({
   chunkedLoading: true,
-  maxClusterRadius: 50,
+  maxClusterRadius: 80,
+  disableClusteringAtZoom: 16,
   spiderfyOnMaxZoom: true,
   showCoverageOnHover: false,
   zoomToBoundsOnClick: true,
